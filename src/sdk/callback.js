@@ -25,29 +25,6 @@ export class Callback {
          * */
         this.onKickoffByOtherClient = (reason) => { }
         /**
-         * 收到添加好友的申请
-         * @param {User} user 申请人
-         * @param {String} message 申请的消息
-         * @param {String} source 申请的来源
-         * */
-        this.onContactKnock = (userId, message, source) => { }
-        /**
-         *
-         * @param {User} user
-         * @param {String} message
-         * */
-        this.onContactKnockReject = (user, message) => { }
-
-        /**
-         * @param {User} user
-         * */
-        this.onContactUpdated = (user) => { }
-
-        /**
-         * @param {User} user
-         * */
-        this.onContactRemoved = (user, isRemoved) => { }
-        /**
          * 发送消息失败
          * @param {Topic} topic
          * @param {String} chatId

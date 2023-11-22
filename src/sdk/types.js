@@ -34,9 +34,6 @@ export const ChatRequestType = {
     Typing: 'typing',
     Read: 'read',
     Response: 'resp',
-    NotifyContactKnock: 'contact.knock',
-    NotifyContactAcceptedKnock: 'contact.accepted',
-    NotifyContactRejectedKnock: 'contact.rejected',
     Kickout: 'kickout',
 }
 export class User {
@@ -61,10 +58,6 @@ export class User {
          * @type {String} 本地或者联系人备注
         */
         this.remark = null
-        /**
-         * @type {Boolean} 是否好友
-        */
-        this.isContact = false
         /**
          * @type {Boolean} 是否星标
         */
@@ -161,6 +154,10 @@ export class Topic {
          * */
         this.lastSeq = 0
         /**
+         * @type {Number} 最后一条已读消息的seq
+         * */
+        this.lastReadSeq = 0
+        /**
          * @type {Boolean} 是否群聊
          * */
         this.multiple = false
@@ -184,8 +181,17 @@ export class Topic {
          * @type {Boolean} 是否免打扰
          * */
         this.muted = false
-        this.unread = 0
         this.cachedAt = undefined
+    }
+    /**
+     * @type {Number} 未读消息数
+    */
+    get unread() {
+        let count = this.lastSeq - this.lastReadSeq
+        if (count < 0) {
+            count = 0
+        }
+        return count
     }
 }
 

@@ -1,4 +1,4 @@
-import { BackendApi } from './backend'
+import { BackendApi, handleResult } from './backend'
 import { User } from './types'
 
 export default class ServicesApi {
@@ -49,46 +49,15 @@ export default class ServicesApi {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/create/${userId}`)
         return resp
     }
-
-    // 发起加好友的申请
-    async removeContact(userId, source, message, memo) {
-        return await this.backend.post(`${this.endpoint}/api/contact/remove/${userId}`, { source, message, memo })
-    }
-    // 发起加好友的申请
-    async addFriend(userId, source, message, memo) {
-        return await this.backend.post(`${this.endpoint}/api/contact/knock/${userId}`, { source, message, memo })
-    }
-
-    // 列出好友申请
-    async listFriendApply() {
-        const resp = await this.backend.post(`${this.endpoint}/api/contact/list_knock`)
-        return resp ?? []
-    }
-
-    // 接受好友申请
-    async acceptFriendApply(userId, source, message, memo) {
-        return await this.backend.post(`${this.endpoint}/api/contact/accept/${userId}`, { source, message, memo })
-    }
-
-    // 拒绝好友申请
-    async rejectFriendApply(params) {
-        return await this.backend.post(`${this.endpoint}/api/contact/reject/${params.userId}`, params)
-    }
-
-    // 同步联系人
-    async getContacts(updatedAt, limit) {
-        return await this.backend.post(`${this.endpoint}/api/contact/sync`, { updatedAt, limit })
-    }
-
     // 设置黑名单
     async setBlocked(userId) {
-        const resp = await this.backend.post(`${this.endpoint}/api/contact/block/${userId}`)
+        const resp = await this.backend.post(`${this.endpoint}/api/block/${userId}`)
         return resp.items ?? []
     }
 
     // 取消黑名单
     async unsetBlocked(userId) {
-        const resp = await this.backend.post(`${this.endpoint}/api/contact/unblock/${userId}`)
+        const resp = await this.backend.post(`${this.endpoint}/api/unblock/${userId}`)
         return resp.items ?? []
     }
 
@@ -183,5 +152,29 @@ export default class ServicesApi {
     async removeGroupMember(topicId, userId) {
         return await this.backend.post(`${this.endpoint}/api/topic/admin/kickout/${topicId}/${userId}`)
 
+    }
+    // 允许某个用户和我对话
+    async allowChatWithUser(userId) {
+        return await this.backend.post(`${this.endpoint}/api/relation/${userId}`, { 'chatAllowed': true })
+    }
+
+    // 上传文件
+    async uploadFile(file, topicId, isPrivate) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('topicId', topicId)
+        formData.append('private', isPrivate)
+
+        const authToken = this.backend.token ? `Bearer ${this.backend.token}` : undefined
+        const resp = await fetch(`${this.endpoint}/api/attachment/upload`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData,
+            headers: new Headers({
+                'Authorization': authToken,
+            }),
+        })
+
+        return await handleResult(resp)
     }
 }

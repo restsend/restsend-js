@@ -93,12 +93,10 @@ export class ClientStore {
     constructor(services) {
         this.services = services
         this.users = new LRUCache({ max: 20000 }) // 缓存20000个用户
-        this.contacts = {}
         this.conversations = {}
         this.topics = {}
         this.topicMessages = {}
         this.lastSyncConversation = undefined
-        this.lastSyncContacts = undefined
     }
 
     getMessageStore(topicId, bucketSize) {
@@ -146,15 +144,6 @@ export class ClientStore {
         return topic
     }
 
-    removeContact(userId) {
-        delete this.contacts[userId]
-    }
-
-    updateContact(userId, data) {
-        let u = this.updateUser(userId, data)
-        this.contacts[userId] = u
-        return u
-    }
 
     updateUser(userId, data) {
         let user = Object.assign(new User(), data)

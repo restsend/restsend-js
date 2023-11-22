@@ -297,6 +297,27 @@ export class Connection extends Callback {
         return await this.processSendChatRequest(topic, req)
     }
     /**
+     * 发送图片消息
+     * @param {Topic} topic
+     * @param {String} urlOrData 图片地址或者base64编码的图片内容
+     * @option @param {Array<String>} mentions 提到的人
+     * @option @param {String} replyId 回复的消息id
+     */
+    async doSendImage({ topic, urlOrData, mentions, replyId }) {
+        let req = await this.sendAndWaitResponse({
+            type: 'chat',
+            chatId: randText(CHAT_ID_LENGTH),
+            topicId: topic.id,
+            content: {
+                type: 'image',
+                text: urlOrData,
+                mentions,
+                replyId,
+            },
+        })
+        return await this.processSendChatRequest(topic, req)
+    }
+    /**
      * 发送语音消息
      * @param {Topic} topic
      * @param {String} urlOrData

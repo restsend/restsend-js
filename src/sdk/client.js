@@ -1,9 +1,10 @@
 import ServiceApi from './services'
+
 import { Connection } from './connection'
 import { logger } from './utils'
 import { ChatLog, Topic, User, Conversation } from './types'
 import dayjs from 'dayjs'
-import {ClientStore} from './store'
+import { ClientStore } from './store'
 
 export class Client extends Connection {
     constructor(endpoint) {
@@ -18,9 +19,6 @@ export class Client extends Connection {
             'typing': this._onTyping.bind(this),
             'chat': this._onChat.bind(this),
             'read': this._onRead.bind(this),
-            'contact.knock': this._onContactKnock.bind(this),
-            'contact.accepted': this._onContactAcceptedKnock.bind(this),
-            'contact.rejected': this._onContactRejectedKnock.bind(this),
             'kickout': this._onKickout.bind(this),
         }
     }
@@ -68,8 +66,6 @@ export class Client extends Connection {
         this.store.updateTopicMessage(topic, chat_log)
         this.onTopicMessage(topic, chat_log)
 
-        topic.unread ++
-
         let conversation = await Conversation.fromTopic(topic, chat_log).build(this)
         conversation.unread = topic.unread
         this.onConversationUpdated(conversation)
@@ -86,30 +82,6 @@ export class Client extends Connection {
         topic.unread = 0
         let conversation = await Conversation.fromTopic(topic).build(this)
         this.onConversationUpdated(conversation)
-    }
-
-    async _onContactKnock(topicId, senderId, req) {
-        this.onContactKnock(senderId, req.message, req.source)
-    }
-
-    async _onContactAcceptedKnock(topicId, senderId, req) {
-        let user = await this.getUser(senderId)
-        if (!user) {
-            logger.warn('bad user id', senderId)
-            return
-        }
-        this.onContactUpdated(user)
-        // 创建一个本地会话
-        await this.tryChatWithUser(user)
-    }
-
-    async _onContactRejectedKnock(topicId, senderId, req) {
-        let user = await this.getUser(senderId)
-        if (!user) {
-            logger.warn('bad user id', senderId)
-            return
-        }
-        this.onContactKnockReject(user, req.message)
     }
 
     async _onKickout(topicId, senderId, req) {
@@ -162,6 +134,7 @@ export class Client extends Connection {
 
         let doSync = async () => {
             let { items, updatedAt, hasMore } = await this.services.getChatList(syncAt, limit)
+
             if (!items) {
                 return
             }
@@ -182,53 +155,6 @@ export class Client extends Connection {
             logger.debug('sync conversations done count:', count)
         })
     }
-    /**
-     * 开始同步联系人列表
-     * @returns {Promise}
-     * @memberof Client
-     * */
-    beginSyncContacts() {
-        const limit = 100
-        let count = 0
-        let syncAt = this.store.lastSyncContacts
-
-        for (let id in this.store.contacts) {
-            this.onContactUpdated(this.store.contacts[id])
-        }
-
-        let doSync = async () => {
-            let { items, updatedAt, hasMore, removed } = await this.services.getContacts(syncAt, limit)
-            if (!items) {
-                return
-            }
-            items.forEach((contact) => {
-                contact.id = contact.userId
-                contact.createdAt = dayjs(contact.createdAt)
-                contact.updatedAt = dayjs(contact.updatedAt || contact.createdAt || Date.now())
-                contact = this.store.updateContact(contact.id, contact)
-                this.onContactUpdated(contact)
-            })
-
-            removed = removed || []
-            removed.forEach((id) => {
-                this.store.removeContact(id)
-                this.getUser(id).then((user) => {
-                    this.onContactRemoved(user)
-                })
-            })
-
-            syncAt = updatedAt
-            count += items.length
-            if (hasMore) {
-                await doSync()
-            }
-        }
-
-        doSync().then(() => {
-            this.store.lastSyncContacts = syncAt
-            logger.debug('sync contacts done count:', count)
-        })
-    }
 
     /**
      * 获取当前用户的userId， 如果没有登录，返回空
@@ -244,22 +170,11 @@ export class Client extends Connection {
         return this.services.authToken || ''
     }
 
-
-    /**
-     * 获取联系人申请的数量
-     * @returns {Number}
-     */
-    get contactsKnockCount() { }
     /**
      * 获取群申请的数量
      * @returns {Number}
      */
     get topicsKnockCount() { }
-    /**
-     * 获取联系人的数量
-     * @returns {Number}
-     */
-    get contactsCount() { }
     /**
      * 获取会话的数量
      * @returns {Number}
@@ -504,26 +419,6 @@ export class Client extends Connection {
         return this.store.getUser(userId)
     }
 
-    /**
-     * 获取联系人列表
-     * @param {String} updatedAt 上次更新的时间, 如果为空, 则返回所有的联系人
-     * @param {Number} limit 返回的数量
-     * @return {Array<User>} 联系人列表
-     * */
-    async getContacts({ updatedAt, limit }) {
-        return await this.services.getContacts(updatedAt, limit)
-    }
-
-    /**
-     * 添加联系人
-     * @param {Object} params
-     * @param {String} params.userId
-     * @param {String} params.message
-     * @param {String} params.source
-     * */
-    async addContact({ userId, source, message, memo }) {
-        return await this.services.addFriend(userId, source, message, memo)
-    }
 
     /**
      * 建群
@@ -547,64 +442,43 @@ export class Client extends Connection {
     }
 
     /**
-     * 同意添加联系人
-     * @param {Object} params
-     * @param {String} params.userId 申请人的id
-     * @param {String} params.message 申请人的消息
-     * @param {String} params.source 申请人的来源
-     * @param {String} params.memo 申请人的备注
-     */
-
-    async acceptContact({ userId, message, source, memo }) {
-        return await this.services.acceptFriendApply(userId, message, source, memo)
-    }
-
-    /**
-     * 拒绝添加联系人
-     * @param {Object} params
-     * @param {String} params.userId 申请人的id
-     * @param {String} params.message 申请人的消息
-     * @param {String} params.source 申请人的来源
-     * @param {String} params.memo 申请人的备注
-     */
-    async declineContact({ userId, message, source, memo }) {
-        return await this.services.acceptFriendApply(userId, message, source, memo)
-    }
-
-    /**
-     * 删除联系人
-     * @param {String} userId
-     */
-    async removeContact(userId) {
-        return await this.services.removeContact(userId)
-    }
-    /**
      * 设置联系人备注
      * @param {String} userId
      * @param {String} remark
      */
-    setContactRemark(userId, remark) { }
+    setUserRemark(userId, remark) { }
     /**
      * 设置/取消联系人星标
      * @param {String} userId
      * @param {Boolean} star
      */
-    setContactStar(userId, star) { }
+    setUserStar(userId, star) { }
     /**
      * 设置/取消联系人黑名单
      * @param {String} userId
      * @param {Boolean} block
      * */
-    async setContactBlock(userId) {
+    async setUserBlock(userId) {
         return await this.services.setBlocked(userId)
     }
 
-    async unsetBlocked(userId) {
+    async unsetUserBlocked(userId) {
         return await this.services.unsetBlocked(userId)
     }
-
+    async allowChatWithUser({ userId }) {
+        return await this.services.allowChatWithUser(userId)
+    }
+    /**
+     * 
+     * @param {file} file 
+     * @param {String} topicId
+     * @param {Boolean} private
+     * @returns 
+     */
+    async uploadFile({ file, topicId, isPrivate }) {
+        return await this.services.uploadFile(file, topicId, isPrivate)
+    }
 }
-
 const client = new Client()
 export default client
 

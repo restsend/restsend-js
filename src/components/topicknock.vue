@@ -12,54 +12,54 @@ const store = useAppStore()
 
 const list = ref()
 const form = ref({
-    userId: '',
-    message: '',
-    memo: '',
+  userId: '',
+  message: '',
+  memo: '',
 })
 
 const modal = ref({
-    showApplication: false,
-    showAcception: false,
+  showApplication: false,
+  showAcception: false,
 })
 
 async function getGroupApplyList() {
-    list.value = await service.getAllGroupApplyList()
-    console.log(list)
+  list.value = await service.getAllGroupApplyList()
+  console.log(list)
 }
 
 onMounted(() => {
-    getGroupApplyList()
+  getGroupApplyList()
 })
 
 function handleApplication(item, type) {
-    if (type)
-        modal.value.showAcception = true
-    else
-        modal.value.showAcception = false
-    item.showApplication = true
+  if (type)
+    modal.value.showAcception = true
+  else
+    modal.value.showAcception = false
+  item.showApplication = true
 }
 
 async function handleAccept(item) {
-    await service.acceptGroup({
-        topicId: item.topicId,
-        userId: item.userId,
-        source: item.source,
-        message: form.value.message,
-        memo: form.value.userId,
-    })
-    item.showApplication = false
-    item.closeApplyInfo = true
+  await service.acceptGroup({
+    topicId: item.topicId,
+    userId: item.userId,
+    source: item.source,
+    message: form.value.message,
+    memo: form.value.userId,
+  })
+  item.showApplication = false
+  item.closeApplyInfo = true
 }
 
 async function handleReject(item) {
-    await client.declineContact({
-        userId: item.userId,
-        source: item.source,
-        message: form.value.message,
-        memo: form.value.memo,
-    })
-    item.showApplication = false
-    item.closeApplyInfo = true
+  await client.declineContact({
+    userId: item.userId,
+    source: item.source,
+    message: form.value.message,
+    memo: form.value.memo,
+  })
+  item.showApplication = false
+  item.closeApplyInfo = true
 }
 </script>
 

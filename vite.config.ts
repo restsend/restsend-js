@@ -6,7 +6,7 @@ import Vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }): UserConfig => {
     const env = loadEnv(mode, process.cwd())
-    const server = env.VITE_API_SERVER || 'http://chat.rddoc.cn'
+    const server = env.VITE_API_SERVER || 'http://chat.ruzhila.cn'
 
     return {
         plugins: [Vue()],

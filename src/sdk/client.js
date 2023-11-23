@@ -184,11 +184,15 @@ export class Client extends Connection {
     /**
      * 发起一个单聊请求
      * @param {User} user
+     * @returns {Topic} 返回一个会话信息, 可能会为空, 表示请求失败
      */
     async tryChatWithUser(user) {
         let topic = await this.services.chatWithUser(user.id)
+        if (!topic) {
+            return
+        }
         let conversation = await Conversation.fromTopic(topic).build(this)
-        if (!conversation.name && !topic.multiple) {
+        if (!conversation.name && !conversation.multiple) {
             conversation.name = user.displayName
         }
         this.onConversationUpdated(conversation)
@@ -318,19 +322,19 @@ export class Client extends Connection {
      * @param {String} topicId
      * @param {String} userId
      * */
-    addTopicAdmin(topicId, userId) { }
+    addTopicAdmin({ topicId, userId }) { }
     /**
      * 删除管理员
      * @param {String} topicId
      * @param {String} userId
      * */
-    removeTopicAdmin(topicId, userId) { }
+    removeTopicAdmin({ topicId, userId }) { }
     /**
      * 转让群主
      * @param {String} topicId
      * @param {String} userId
      * */
-    transferTopic(topicId, userId) { }
+    transferTopic({ topicId, userId }) { }
     /**
      * 退出群聊,所有者不能退出群聊，只能解散群聊
      * @param {String} topicId
@@ -340,7 +344,7 @@ export class Client extends Connection {
      * 解散群聊
      * @param {String} topicId
      * */
-    async dismissTopic({ topicId }) {
+    async dismissTopic(topicId) {
         return await this.services.dismissGroup(topicId)
     }
 
@@ -360,20 +364,20 @@ export class Client extends Connection {
      * @param {String} topicId
      * @param {String} userId
      * */
-    acceptTopicJoin(topicId, userId) { }
+    acceptTopicJoin({ topicId, userId }) { }
     /**
      * 拒绝加入群聊，只有管理员能操作
      * @param {String} topicId
      * @param {String} userId
      * @param {String} message 理由
      * */
-    declineTopicJoin(topicId, userId, message) { }
+    declineTopicJoin({ topicId, userId, message }) { }
     /**
      * 邀请加入群聊
      * @param {String} topicId
      * @param {String} userId
      */
-    inviteTopicMember(topicId, userId) { }
+    inviteTopicMember({ topicId, userId }) { }
     /**
      * 移除群成员
      * @param {String} topicId
@@ -388,27 +392,27 @@ export class Client extends Connection {
      * @param {String} topicId
      * @param {Boolean} mute
      * */
-    setTopicMute(topicId, boolean) { }
+    setTopicMute({ topicId, boolean }) { }
     /**
      * 清空聊天记录,是否同步到服务端
      * @param {String} topicId
      * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
      * */
-    cleanTopicHistory(topicId, sync) { }
+    cleanTopicHistory({ topicId, sync }) { }
     /**
      * 删除单条消息, 是否同步到服务端
      * @param {String} topicId
      * @param {String} chatId
      * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
      */
-    removeMessage(topicId, chatId, sync) { }
+    removeMessage({ topicId, chatId, sync }) { }
     /**
      * 删除单条消息, 是否同步到服务端
      * @param {String} topicId
      * @param {Array<String>} chatId 多条消息的id
      * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
      */
-    removeMessages(topicId, chatId, sync) { }
+    removeMessages({ topicId, chatId, sync }) { }
 
     /**
      * 获取一个用户的详细信息, 用户不存在返回undefined
@@ -446,33 +450,39 @@ export class Client extends Connection {
      * @param {String} userId
      * @param {String} remark
      */
-    setUserRemark(userId, remark) { }
+    setUserRemark({ userId, remark }) { }
     /**
      * 设置/取消联系人星标
      * @param {String} userId
      * @param {Boolean} star
      */
-    setUserStar(userId, star) { }
+    setUserStar({ userId, star }) { }
     /**
      * 设置/取消联系人黑名单
      * @param {String} userId
      * @param {Boolean} block
      * */
-    async setUserBlock(userId) {
-        return await this.services.setBlocked(userId)
+    async setUserBlock({ userId, blocked }) {
+        if (blocked) {
+            return await this.services.setBlocked(userId)
+        } else {
+            return await this.services.unsetBlocked(userId)
+        }
     }
 
-    async unsetUserBlocked(userId) {
-        return await this.services.unsetBlocked(userId)
-    }
-    async allowChatWithUser({ userId }) {
+    /**
+     * 设置允许聊天
+     * @param {String} userId
+     * */
+    async allowChatWithUser(userId) {
         return await this.services.allowChatWithUser(userId)
     }
+
     /**
      * 
-     * @param {file} file 
-     * @param {String} topicId
-     * @param {Boolean} private
+     * @param {file} file  文件对象
+     * @param {String} topicId 是否群聊里面上传的文件
+     * @param {Boolean} isPrivate 是否是私有文件
      * @returns 
      */
     async uploadFile({ file, topicId, isPrivate }) {

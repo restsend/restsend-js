@@ -349,7 +349,7 @@ export class Connection extends Callback {
      * @option @param {Array<String>} mentions 提到的人
      * @option @param {String} replyId 回复的消息id
      */
-    async doSendVideo({ topic, url, thumbnail, duration, mentions, replyId }) {
+    async doSendVideo({ topic, urlOrData, thumbnail, duration, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),

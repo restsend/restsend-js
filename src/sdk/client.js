@@ -236,7 +236,7 @@ export class Client extends Connection {
             throw new Error('topic not found')
         }
         topic.unread = 0
-        this.doTyping(topicId, false)
+        this.doRead(topicId)
     }
 
     /**

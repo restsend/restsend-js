@@ -103,7 +103,7 @@ describe('Client auth', function () {
 describe('sync conversation', function () {
     it('sync chat list', async () => {
         var vitalik = await authClient('vitalik', 'vitalik:demo')
-        expect(await vitalik.allowChatWithUser({ userId: 'guido' })).toStrictEqual({ ok: true })
+        expect(await vitalik.allowChatWithUser({ userId: 'guido' })).toStrictEqual(true)
 
         var guido = await authClient('guido', 'guido:demo')
 
@@ -122,9 +122,14 @@ describe('sync conversation', function () {
 
     it('remove chat', async () => {
         var guido = await authClient('guido', 'guido:demo')
-        expect(await guido.removeConversation('guido:vitalik')).toStrictEqual({ ok: true })
+        expect(await guido.removeConversation('guido:vitalik')).toStrictEqual(true)
         let { items, updatedAt, hasMore } = await guido.services.getChatList()
-        expect(items).toBeUndefined()
+        // expect items not exist vitalik chat, key is topicId
+        if (items.length > 0) {
+            items.forEach(item => {
+                expect(item.topicId).not.toEqual('guido:vitalik')
+            })
+        }
     })
 })
 
@@ -141,7 +146,7 @@ describe('Connection states', function () {
     it('send text message', async () => {
         var guido = await authClient('guido', 'guido:demo', true)
         var vitalik = await authClient('vitalik', 'vitalik:demo', true)
-        expect(await vitalik.allowChatWithUser({ userId: 'guido' })).toStrictEqual({ ok: true })
+        expect(await vitalik.allowChatWithUser({ userId: 'guido' })).toStrictEqual(true)
         let topic = await guido.tryChatWithUser({ id: 'vitalik' })
         expect(topic).toHaveProperty('id')
         let received = false

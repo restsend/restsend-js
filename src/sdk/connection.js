@@ -4,6 +4,7 @@
 import { ChatRequest } from './types'
 import { logger, randText } from './utils'
 import { Callback } from './callback'
+
 const REQUEST_ID_LENGTH = 8
 const CHAT_ID_LENGTH = 8
 const REQUEST_TIMEOUT = 120000 // 2 minutes

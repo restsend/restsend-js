@@ -7,6 +7,7 @@ export const NetworkState = {
 }
 
 export const ChatContentType = {
+    Null: '',
     Text: 'text',
     Image: 'image',
     Video: 'video',
@@ -15,6 +16,9 @@ export const ChatContentType = {
     Location: 'location',
     Sticker: 'sticker',
     Contact: 'contact',
+    Invite: 'invite',
+    Link: 'link',
+    Logs: 'logs',
     TopicCreate: 'topic.create',
     TopicDismiss: 'topic.dismiss',
     TopicQuit: 'topic.quit',
@@ -26,6 +30,7 @@ export const ChatContentType = {
     TopicKnockReject: 'topic.knock.reject',
     TopicSilent: 'topic.silent',
     TopicSilentMember: 'topic.silent.member',
+    TopicChangeOwner: 'topic.changeowner',
 }
 
 export const ChatRequestType = {
@@ -238,6 +243,9 @@ export class Content {
          * @type {Number} 内容大小，在文件，图片，视频，音频中使用
          * */
         this.size = 0
+
+        this.width = 0
+        this.height = 0
         /**
          * @type {Array<String>} 提到的人或者指定的人
          * */

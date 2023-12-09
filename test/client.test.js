@@ -3,10 +3,10 @@
  */
 import WebSocket from "ws";
 
-import { Client } from './client';
+import { Client } from '../src/client';
 import { describe, it, expect, assert, vi } from 'vitest'
 import { loadEnv } from 'vite'
-import { getFirstLetter } from './utils';
+import { getFirstLetter } from '../src/utils';
 
 const env = loadEnv('development', process.cwd())
 const server = env.VITE_API_SERVER

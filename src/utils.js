@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import { pinyin } from 'pinyin-pro';
 
 export function formatDate(date, format = 'YYYY-MM-DD HH:mm:ss') {
     return dayjs(date).format(format)
@@ -11,14 +10,14 @@ export function ISOStringDate(date) {
 
 export function randText(length = 8) {
     let result = 'j'
-    for (let i = 0; i < length+1; i++) {
+    for (let i = 0; i < length + 1; i++) {
         const padding = result.length < length ? length - result.length : 0
         result += Math.random().toString(36).substring(2, 2 + padding)
     }
     return result
 }
 
-export function  getFirstLetter(str) {    
+export function getFirstLetter(str) {
     let firstChar = str.charAt(0).toUpperCase()
     if (firstChar >= 'A' && firstChar <= 'Z') {
         return firstChar
@@ -26,6 +25,10 @@ export function  getFirstLetter(str) {
 
     if (firstChar >= '0' && firstChar <= '9') {
         return firstChar
+
+    }
+    if (typeof pinyin === 'undefined') {
+        return '#'
     }
     if (firstChar >= '\u4e00' && firstChar <= '\u9fa5') {
         // Chinese

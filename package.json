@@ -2,26 +2,25 @@
   "name": "resetsend-js",
   "version": "1.0.0",
   "description": "Restsend Javascript SDK",
-  "main": "dist/restsend.cjs.js",
-  "module": "dist/restsend.esm.js",
-  "browser": "dist/restsend.umd.js",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/restsend-sdk.umd.js",
+  "module": "./dist/restsend-sdk.es.js",
   "dependencies": {
     "dayjs": "^1.11.7",
-    "lru-cache": "^9.1.2",
-    "pinyin-pro": "^3.15.1"
+    "lru-cache": "^9.1.2"
   },
   "devDependencies": {
-    "mocha": "3.0.0",
-    "@rollup/plugin-commonjs": "^11.0.1",
-    "@rollup/plugin-node-resolve": "^7.0.0",
-    "rollup": "^1.29.0",
+    "vite": "^5.0.7",
+    "vitest": "^1.0.4",
     "ws": "^8.13.0"
   },
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "test": "mocha test/"
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest --run"
   },
-  "author": "hello@restsend.com",
+  "author": "admin@restsend.com",
   "license": "ISC"
 }

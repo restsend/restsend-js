@@ -51,17 +51,17 @@ async function authClient(username, password, withWebSocket = false) {
     return client
 }
 
-describe('Pinyin', function () {
+describe('Utils', function () {
     describe('#test getFirstLetter', function () {
-        it('latin and pinyin', function () {
+        it('latin', function () {
             // latin
             expect(getFirstLetter('abc')).toBe('A')
             expect(getFirstLetter('123')).toBe('1')
             expect(getFirstLetter('223')).toBe('2')
-            // Chinese
-            getFirstLetter('')
-            expect(getFirstLetter('你好')).toBe('N')
-            expect(getFirstLetter('饿')).toBe('E')
+            // // Chinese
+            // getFirstLetter('')
+            // expect(getFirstLetter('你好')).toBe('N')
+            // expect(getFirstLetter('饿')).toBe('E')
             // emoji
             expect(getFirstLetter('👍')).toBe('#')
             expect(getFirstLetter('こんにちは')).toBe('#')

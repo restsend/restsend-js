@@ -489,6 +489,3 @@ export class Client extends Connection {
         return await this.services.uploadFile(file, topicId, isPrivate)
     }
 }
-const client = new Client()
-export default client
-

@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import { formatDate } from './utils'
 
 export const NetworkState = {
     Connected: 'connected',
@@ -84,11 +84,11 @@ export class User {
         */
         this.source = null
         /**
-         * @type {String} 本地创建时间
+         * @type {Date} 本地创建时间
         */
         this.createdAt = null
         /**
-         * @type {String} 修改时间
+         * @type {Date} 修改时间
         */
         this.updatedAt = null
         this.cachedAt = undefined
@@ -114,7 +114,7 @@ export class TopicNotice {
          * */
         this.publisher = null
         /**
-         * @type {String} 发布时间
+         * @type {Date} 发布时间
          * */
         this.updatedAt = null
     }
@@ -175,7 +175,7 @@ export class Topic {
          * */
         this.createdAt = null
         /**
-         * @type {String} 更新时间
+         * @type {Date} 更新时间
          * */
         this.updatedAt = null
         /**
@@ -353,7 +353,7 @@ export class Conversation {
     }
 
     async build(client) {
-        this.updatedAt = dayjs(this.updatedAt || this.createdAt)
+        this.updatedAt = formatDate(this.updatedAt || this.createdAt)
         if (this.lastSenderId) {
             this.lastMessage.sender = await client.getUser(this.lastSenderId)
         }

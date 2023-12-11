@@ -1,11 +1,10 @@
-import dayjs from 'dayjs'
 
-export function formatDate(date, format = 'YYYY-MM-DD HH:mm:ss') {
-    return dayjs(date).format(format)
-}
-
-export function ISOStringDate(date) {
-    return dayjs(date).toISOString()
+export function formatDate(date) {
+    if (!date) return ''
+    if (typeof data === 'string') {
+        date = new Date(date)
+    }
+    return date
 }
 
 export function randText(length = 8) {

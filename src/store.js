@@ -1,9 +1,7 @@
-import { User, Topic, ChatLog, TopicNotice } from './types.js'
+import { User, Topic, ChatLog, TopicNotice } from './types'
 import { LRUCache } from 'lru-cache'
-import dayjs from 'dayjs'
-/**
- * Private Browsing 是不存储数据，只放在内存中，关闭浏览器就没了
- *  */
+import { formatDate } from './utils'
+
 const MessageBucketSize = 100
 class MessageStore {
     constructor(services, topicId, bucketSize) {
@@ -39,8 +37,8 @@ class MessageStore {
             let log = Object.assign(new ChatLog(), items[i])
             log.sender = await this.getUser(log.senderId)
 
-            log.createdAt = dayjs(log.createdAt || Date.now())
-            log.updatedAt = dayjs(log.createdAt || log.createdAt || Date.now())
+            log.createdAt = formatDate(log.createdAt || Date.now())
+            log.updatedAt = formatDate(log.createdAt || Date.now())
             logs.push(log)
         }
         this.updateMessages(logs)
@@ -138,7 +136,7 @@ export class ClientStore {
         topic.cachedAt = Date.now()
         if (topic.notice) {
             topic.notice = Object.assign(new TopicNotice(), topic.notice)
-            topic.notice.updatedAt = dayjs(topic.notice.updatedAt || Date.now())
+            topic.notice.updatedAt = formatDate(topic.notice.updatedAt || Date.now())
         }
         this.topics[topicId] = topic
         return topic

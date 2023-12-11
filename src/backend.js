@@ -51,6 +51,3 @@ export class BackendApi {
         return await sendReq('POST', url, data, this.token)
     }
 }
-
-const backend = new BackendApi()
-export default backend

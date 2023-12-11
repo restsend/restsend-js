@@ -1,9 +1,7 @@
 import ServiceApi from './services'
-
 import { Connection } from './connection'
-import { logger } from './utils'
+import { logger, formatDate } from './utils'
 import { ChatLog, Topic, User, Conversation } from './types'
-import dayjs from 'dayjs'
 import { ClientStore } from './store'
 
 export class Client extends Connection {
@@ -58,8 +56,8 @@ export class Client extends Connection {
         let chat_log = Object.assign(new ChatLog(), req)
         chat_log.senderId = req.attendee
         chat_log.sender = sender
-        chat_log.createdAt = dayjs(req.createdAt)
-        chat_log.updatedAt = dayjs(req.createdAt)
+        chat_log.createdAt = formatDate(req.createdAt)
+        chat_log.updatedAt = formatDate(req.createdAt)
 
         topic.lastSeq = chat_log.seq > topic.lastSeq ? chat_log.seq : topic.lastSeq
 

@@ -5,7 +5,6 @@ import { ChatRequest } from './types'
 import { logger, randText } from './utils'
 import { Callback } from './callback'
 
-const REQUEST_ID_LENGTH = 8
 const CHAT_ID_LENGTH = 8
 const REQUEST_TIMEOUT = 120000 // 2 minutes
 const keepaliveInterval = 30 * 1000 // 30 seconds
@@ -21,27 +20,27 @@ export class Connection extends Callback {
         this.start()
     }
     /**
-     * app切换到前台后会立即触发重连，保证链接的效果
+     * Trigger reconnection immediately after the app switches to the foreground to ensure the connection.
     */
     async appActive() {
         await this.immediateConnectIfNeed()
     }
 
     /**
-     * app切换到后台,重联降低频率
+     * Reduce reconnection frequency when the app switches to the background.
      */
     appDeactive() { }
 
     /**
-     * 获取websocket链接状态
-     * @returns {String} 返回状态: connected 或者 disconnected
+     * Get the websocket connection status
+     * @returns {String} Returns the status: connected or disconnected
      */
     get networkState() {
         return this.status
     }
 
     start() {
-        this.running = true // 如果为false，表示已经关闭, 不要尝试重联
+        this.running = true // If false, it means it has been closed, do not attempt to reconnect
 
         this.ws = null
         this.keepalive = null
@@ -77,7 +76,7 @@ export class Connection extends Callback {
         return await this.connect()
     }
     /**
-     * 登陆成功后手工创建websocket的链接
+     * Manually create a websocket connection after successful login
      */
     async connect() {
         if (this.status === 'connected' || this.status === 'connecting')
@@ -163,34 +162,34 @@ export class Connection extends Callback {
 
         let req = JSON.parse(event.data)
         if (req.type === 'resp') {
-            this._onResponse(req) // 处理响应
+            this._onResponse(req) // Handle response
             return
         }
         req = Object.assign(new ChatRequest(), req)
         req.receivedAt = Date.now()
-        // 调用子类的处理函数
+        // Call the subclass's handler function
         this.handleRequest(req).then((code) => {
-            if (req.id)
-                this.sendResponse(req.id, code || 200)
+            if (req.chatId)
+                this.sendResponse(req.chatId, code || 200)
         })
     }
 
-    sendResponse(id, code) {
+    sendResponse(chatId, code) {
         this.doSendRequest({
             type: 'resp',
-            id,
+            chatId,
             code,
         }).then(() => { })
     }
 
     async _onResponse(req) {
-        const w = this.waiting[req.id]
+        const w = this.waiting[req.chatId]
         if (w) {
-            delete this.waiting[req.id]
+            delete this.waiting[req.chatId]
             await w.resolve(w.req)
         }
         else {
-            this.logger.warn('no waiting for resp', req)
+            logger.warn('no waiting for resp', req)
         }
     }
 
@@ -215,9 +214,8 @@ export class Connection extends Callback {
 
     async sendAndWaitResponse(req, retry = true) {
         req = Object.assign(new ChatRequest(), req)
-        req.id = randText(REQUEST_ID_LENGTH)
         return new Promise((resolve, reject) => {
-            this.waiting[req.id] = {
+            this.waiting[req.chatId] = {
                 req,
                 resolve,
                 reject,
@@ -226,9 +224,9 @@ export class Connection extends Callback {
             this.doSendRequest(req, retry).then(() => { })
 
             setTimeout(() => {
-                if (this.waiting[req.id]) {
-                    this.waiting[req.id].reject(new Error('timeout'))
-                    delete this.waiting[req.id]
+                if (this.waiting[req.chatId]) {
+                    this.waiting[req.chatId].reject(new Error('timeout'))
+                    delete this.waiting[req.chatId]
                 }
             }, REQUEST_TIMEOUT * 1000)
         })
@@ -238,7 +236,7 @@ export class Connection extends Callback {
         return req
     }
     /**
-     * 正在输入， 只有个人聊天才有
+     * Typing indicator, only for personal chat
      * @param {Topic} topic
      */
     async doTyping(topic) {
@@ -249,7 +247,7 @@ export class Connection extends Callback {
     }
 
     /**
-      * 聊天消息已读
+      * Chat message read
       * @param {Topic} topic
       */
     async doRead(topic) {
@@ -260,7 +258,7 @@ export class Connection extends Callback {
     }
 
     /**
-     * 撤回一条消息
+     * Recall a message
      * @param {Topic} topic
      * @param {String} chatId
      */
@@ -277,11 +275,11 @@ export class Connection extends Callback {
     }
 
     /**
-     * 发送文本消息
+     * Send text message
      * @param {Topic} topic
      * @param {String} text
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      */
     async doSendText({ topic, text, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -298,11 +296,11 @@ export class Connection extends Callback {
         return await this.processSendChatRequest(topic, req)
     }
     /**
-     * 发送图片消息
+     * Send image message
      * @param {Topic} topic
-     * @param {String} urlOrData 图片地址或者base64编码的图片内容
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {String} urlOrData Image URL or base64 encoded image content
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      */
     async doSendImage({ topic, urlOrData, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -319,12 +317,12 @@ export class Connection extends Callback {
         return await this.processSendChatRequest(topic, req)
     }
     /**
-     * 发送语音消息
+     * Send voice message
      * @param {Topic} topic
      * @param {String} urlOrData
-     * @param {String} duration 语音时长，格式是 00:00
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {String} duration Voice duration, format is 00:00
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      * */
     async doSendVoice({ topic, urlOrData, duration, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -342,13 +340,13 @@ export class Connection extends Callback {
         return await this.processSendChatRequest(topic, req)
     }
     /**
-     * 发送视频消息
+     * Send video message
      * @param {Topic} topic
-     * @param {String} url 视频地址
-     * @param {String} thumbnail 视频缩略图
-     * @param {String} duration 视频时长， 格式是 00:00
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {String} url Video URL
+     * @param {String} thumbnail Video thumbnail
+     * @param {String} duration Video duration, format is 00:00
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      */
     async doSendVideo({ topic, urlOrData, thumbnail, duration, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -368,13 +366,13 @@ export class Connection extends Callback {
     }
 
     /**
-     * 发送文件消息
+     * Send file message
      * @param {Topic} topic
-     * @param {String} urlOrData 文件地址或者base64编码的文件内容
-     * @param {String} filename 文件名
-     * @param {Number} size 文件大小
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {String} urlOrData File URL or base64 encoded file content
+     * @param {String} filename File name
+     * @param {Number} size File size
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      * */
     async doSendFile({ topic, urlOrData, filename, size, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -384,7 +382,7 @@ export class Connection extends Callback {
             content: {
                 type: 'file',
                 text: urlOrData,
-                placeholder: filename,  // 文件名
+                placeholder: filename,  // File name
                 size,
                 mentions,
                 replyId,
@@ -394,13 +392,13 @@ export class Connection extends Callback {
     }
 
     /**
-     * 发送位置消息
+     * Send location message
      * @param {Topic} topic
-     * @param {Number} latitude 纬度
-     * @param {Number} longitude 经度
-     * @param {String} address 地址
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {Number} latitude Latitude
+     * @param {Number} longitude Longitude
+     * @param {String} address Address
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      */
     async doSendLocation({ topic, latitude, longitude, address, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -419,11 +417,11 @@ export class Connection extends Callback {
     }
 
     /**
-     * 发送链接消息
+     * Send link message
      * @param {Topic} topic
-     * @param {String} url 链接地址
-     * @option @param {Array<String>} mentions 提到的人
-     * @option @param {String} replyId 回复的消息id
+     * @param {String} url Link URL
+     * @option @param {Array<String>} mentions Mentioned people
+     * @option @param {String} replyId Reply message id
      */
     async doSendLink({ topic, url, mentions, replyId }) {
         let req = await this.sendAndWaitResponse({
@@ -440,5 +438,3 @@ export class Connection extends Callback {
         return await this.processSendChatRequest(topic, req)
     }
 }
-// const connection = new Connection()
-// export default connection

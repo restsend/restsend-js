@@ -41,10 +41,10 @@ export class Logger {
     constructor() {
         this.level = 'debug'
 
-        this.debug = console.log
-        this.info = console.log
-        this.warn = console.log
-        this.error = console.log
+        this.debug = console.debug
+        this.info = console.info
+        this.warn = console.warn
+        this.error = console.error
     }
 }
 export const logger = new Logger()

@@ -31,6 +31,10 @@ export const ChatContentType = {
     TopicSilent: 'topic.silent',
     TopicSilentMember: 'topic.silent.member',
     TopicChangeOwner: 'topic.changeowner',
+    UploadFile: 'file.upload',
+    ConversationUpdate: 'conversation.update',
+    ConversationRemoved: 'conversation.removed',
+    UpdateExtra: 'update.extra',
 }
 
 export const ChatRequestType = {
@@ -40,6 +44,7 @@ export const ChatRequestType = {
     Read: 'read',
     Response: 'resp',
     Kickout: 'kickout',
+    System: 'system',    
 }
 export class User {
     constructor(id) {
@@ -52,43 +57,43 @@ export class User {
         */
         this.name = null
         /**
-         * @type {String} url 地址
+         * @type {String} url address
         */
         this.avatar = null
         /**
-         * @type {String} e2e的公钥
+         * @type {String} e2e public key
         */
         this.publicKey = null
         /**
-         * @type {String} 本地或者联系人备注
+         * @type {String} local or contact remark
         */
         this.remark = null
         /**
-         * @type {Boolean} 是否星标
+         * @type {Boolean} is starred
         */
         this.isStar = false
         /**
-         * @type {String} 语言
+         * @type {String} language
         */
         this.locale = null
         /**
-         * @type {String} 城市
+         * @type {String} city
         */
         this.city = null
         /**
-         * @type {String} 国家
+         * @type {String} country
         */
         this.country = null
         /**
-         * @type {String} 来源
+         * @type {String} source
         */
         this.source = null
         /**
-         * @type {Date} 本地创建时间
+         * @type {Date} local creation time
         */
         this.createdAt = null
         /**
-         * @type {Date} 修改时间
+         * @type {Date} update time
         */
         this.updatedAt = null
         this.cachedAt = undefined
@@ -106,15 +111,15 @@ export class User {
 export class TopicNotice {
     constructor() {
         /**
-         * @type {String} 通知的内容
+         * @type {String} notice content
          */
         this.text = null
         /**
-         * @type {String} 通知的发布者
+         * @type {String} notice publisher
          * */
         this.publisher = null
         /**
-         * @type {Date} 发布时间
+         * @type {Date} publish time
          * */
         this.updatedAt = null
     }
@@ -123,73 +128,73 @@ export class TopicNotice {
 export class Topic {
     constructor() {
         /**
-         * @type {String} 群id
+         * @type {String} group id
          */
         this.id = null
         /**
-         * @type {String} 群名称
+         * @type {String} group name
          * */
         this.name = null
         /**
-         * @type {String} 群头像
+         * @type {String} group avatar
          * */
         this.icon = null
         /**
-         * @type {String} 备注¬
+         * @type {String} remark
          * */
         this.remark = null
         /**
-         * @type {String} 群主
+         * @type {String} group owner
          * */
         this.ownerId = null
         /**
-         * @type {String} 如果是单聊, 则是对方的id, 多人聊天这个字段为空
+         * @type {String} if it's a single chat, it's the other party's id, this field is empty for group chat
          * */
         this.attendeeId = null
         /**
-         * @type {Array<String>} 群聊的管理员
+         * @type {Array<String>} group chat administrators
          * */
         this.admins = []
         /**
-         * @type {Number} 群成员数量
+         * @type {Number} number of group members
          * */
         this.members = 0
         /**
-         * @type {Number} 最后一条消息的seq
+         * @type {Number} last message seq
          * */
         this.lastSeq = 0
         /**
-         * @type {Number} 最后一条已读消息的seq
+         * @type {Number} last read message seq
          * */
         this.lastReadSeq = 0
         /**
-         * @type {Boolean} 是否群聊
+         * @type {Boolean} is group chat
          * */
         this.multiple = false
         /**
-         * @type {Boolean} 是否私密群
+         * @type {Boolean} is private group
          *  */
         this.private = false
         /**
-         * @type {String} 创建时间
+         * @type {String} creation time
          * */
         this.createdAt = null
         /**
-         * @type {Date} 更新时间
+         * @type {Date} update time
          * */
         this.updatedAt = null
         /**
-         * @type {TopicNotice} 群公告
+         * @type {TopicNotice} group notice
          * */
         this.notice = null
         /**
-         * @type {Boolean} 是否免打扰
+         * @type {Boolean} is muted
          * */
         this.muted = false
         this.cachedAt = undefined
     }
     /**
-     * @type {Number} 未读消息数
+     * @type {Number} unread messages count
     */
     get unread() {
         let count = this.lastSeq - this.lastReadSeq
@@ -204,7 +209,7 @@ export class TopicMember {
     constructor() {
         this.topicId = null
         this.userId = null
-        this.remark = null // 在群里面的备注
+        this.remark = null // remark in the group
         this.createdAt = null
         this.updatedAt = null
     }
@@ -213,86 +218,110 @@ export class TopicMember {
 export class Content {
     constructor() {
         /**
-         * @type {String} 内容类型 text, image, video, voice, file, location, link
+         * @type {String} content type text, image, video, voice, file, location, link
          */
         this.type = null
         /**
-         * @type {Boolean} 是否加密
+         * @type {Boolean} is encrypted
          * */
         this.encrypted = false
         /**
-         * @type {Number} 内容的checksum crc32,用来做Text解密的校验
+         * @type {Number} content checksum crc32, used for Text decryption verification
          * */
         this.checksum = 0
         /**
-         * @type {String} 文本内容,是markdown格式
+         * @type {String} text content, in markdown format
          * */
         this.text = null
         /**
-         * @type {String} 用于显示的占位符, 例如: [图片],在图片，表情，文件等需要占位符的地方会用到
+         * @type {String} placeholder for display, e.g., [image], used in places where placeholders are needed for images, emojis, files, etc.
          * */
         this.placeholder = null
         /**
-         * @type {String} 缩略图的url
+         * @type {String} thumbnail url
          * */
         this.thumbnail = null
         /**
-         * @type {String} 时长 在视频、音频中使用 格式: 00:00
+         * @type {String} duration used in video, audio format: 00:00
         this.duration = null;
         /**
-         * @type {Number} 内容大小，在文件，图片，视频，音频中使用
+         * @type {Number} content size, used in files, images, videos, audio
          * */
         this.size = 0
 
         this.width = 0
         this.height = 0
         /**
-         * @type {Array<String>} 提到的人或者指定的人
+         * @type {Array<String>} mentioned or specified people
          * */
         this.mentions = []
         /**
-         * @type {String} 回复的消息id
+         * @type {String} reply message id
          * */
         this.replyId = null
+
+        /**
+         * @type {String} reply message content
+         * */
+        this.replyContent = null
+
+        /**
+         * @type {Map} extra data
+         * */
+        this.extra = null
+
+        /**
+         * @type {Boolean} is unreadable
+         * */
+        this.unreadable = false
     }
 }
+
 export class ChatLog {
     constructor() {
         /**
-         * @type {Number} 序列号
+         * @type {Number} sequence number
          */
         this.seq = 0
         /**
-         * @type {String} 消息id，在当前会话中唯一
+         * @type {String} message id, unique in the current session
          * */
         this.chatId = null
         /**
-         * @type {String} 会话id
+         * @type {String} session id
          * */
         this.topicId = null
         /**
-         * @type {String} 发送者id
+         * @type {String} sender id
          * */
         this.senderId = null
         /**
-         * @type {Content} 消息内容
+         * @type {Content} message content
          * */
         this.content = null
         /**
-         * @type {String} 发送时间
+         * @type {String} send time
          * */
         this.createdAt = null
         /**
-         * @type {String} 更新时间
+         * @type {String} update time
          * */
         this.updatedAt = null
         /**
-         * @type {Number} 消息状态
+         * @type {Number} message status
          * Sending = 0, Sent = 1,
          * Received = 2,Read = 3,
          * Failed = 4
          * */
         this.status = 0
+        /**
+         * @type {Boolean} is unread
+         * */
+        this.read = false
+        /**
+         * @type {Boolean} is retracted
+         */
+        this.recall = false
     }
 }
 
@@ -312,44 +341,73 @@ export class Conversation {
 
     constructor() {
         /**
-         * @type {String} 会话id
+         * @type {String} session id
          */
         this.topicId = null
         this.attendee = null
         /**
-         * @type {Boolean} 是否群聊
+         * @type {Boolean} is group chat
          *  */
         this.multiple = false
         /**
-         * @type {Topic} 对应的Topic详细信息
+         * @type {Topic} corresponding Topic details
          */
         this.topic = null
         /**
-         * @type {String} 会话名称
+         * @type {String} session name
          * */
         this.name = null
         /**
-         * @type {String} 会话头像
+         * @type {String} session remark
+         * */
+        this.remark = null
+        /**
+         * @type {String} session avatar
          * */
         this.icon = null
         /**
-         * @type {Boolean} 是否置顶
+         * @type {Boolean} is sticky
          *  */
         this.sticky = false
         /**
-         *  @type {Numbers} 未读消息数
+         *  @type {Numbers} unread messages count
          * */
         this.unread = 0
         /**
-         * @type {Content} 最后一条消息
+         * @type {Content} last message
          * */
         this.lastMessage = null
         /**
-         * @type {String} 最后一条消息的发送时间
+         * @type {String} last message send time
          * */
         this.lastMessageAt = null
+        this.lastMessageSeq = 0
+        this.lastSenderId = null
+        this.lastReadSeq = 0
 
         this.updatedAt = null
+        /**
+         * @type {Boolean} is muted
+         */
+        this.mute = false
+        
+        this.members = 0
+        /**
+         * @type {Array<String>} tags
+         * */
+        this.tags = null
+        /**
+         * @type {Map} extra data
+         * */
+        this.extra = null
+        /**
+         * @type {Map} topic's extra data
+         * */
+        this.topicExtra = null
+        /**
+         * @type {String} topic owner id
+         * */
+        this.topicOwnerID = null
     }
 
     async build(client) {
@@ -369,15 +427,11 @@ export class Conversation {
 export class ChatRequest {
     constructor() {
         /**
-         * @type {String} 消息的类型
+         * @type {String} message type
          * */
         this.type = null
         /**
-         * @type {String} 请求id
-         * */
-        this.id = null
-        /**
-         * @type {Number} 响应的状态码
+         * @type {Number} response status code
          */
         this.code = 0
         /**
@@ -389,27 +443,27 @@ export class ChatRequest {
          * */
         this.seq = 0
         /**
-         * @type {String} 接受者，只有在客户端给联系人发送单聊消息才会填充这个字段
+         * @type {String} recipient, only filled in when the client sends a single chat message to a contact
          * */
         this.attendee = null
         /**
-         * @type {String} 发送者的用户信息
+         * @type {String} sender's user information
          * */
         this.attendeeProfile = null
         /**
-         * @type {String} 消息id
+         * @type {String} message id
          * */
         this.chatId = null
         /**
-         * @type {Content} 消息内容
+         * @type {Content} message content
          * */
         this.content = null
         /**
-         * @type {String} 加密的消息文本内容，只有发送端才会用这个字段
+         * @type {String} encrypted message text, only used by the sender
          * */
         this.e2eContent = null
         /**
-         * @type {String} 提示消息，用来替代Content中非文本、图片、视频、音频、文件的消息，一般用在系统消息
+         * @type {String} prompt message, used to replace non-text, image, video, audio, file messages in Content, generally used in system messages
          * */
         this.message = null
         this.receivedAt = undefined

@@ -93,7 +93,7 @@ export class Client extends Connection {
      * @param {String} password
      * @returns {User}
      */
-    async login(username, password) {
+    async login({username, password}) {
         return await this.services.login(username, password)
     }
     async logout() {
@@ -103,7 +103,7 @@ export class Client extends Connection {
      * 采用缓存的token登录
      * @returns {UserInfo}
      */
-    async loginWithToken(username, token) {
+    async loginWithToken({username, token}) {
         if (!token) {
             throw new Error('token not found')
         }

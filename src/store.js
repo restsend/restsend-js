@@ -13,14 +13,14 @@ class MessageStore {
         this.remoteLastSeq = 0
         this.lastSync = undefined
     }
-    // 获取倒序的消息, 从seq开始往前找limit个
+    // Get messages in reverse order, starting from seq and looking for limit messages
     async getMessages(seq) {
         let resp = await this.getMessagesFromCache(seq)
         if (resp) {
             return resp
         }
 
-        // 优先从本地缓存中获取
+        // First get from local cache
         let limit = this.bucketSize
         let startSeq = seq - limit
         let endSeq = seq
@@ -90,7 +90,7 @@ class MessageStore {
 export class ClientStore {
     constructor(services) {
         this.services = services
-        this.users = new LRUCache({ max: 20000 }) // 缓存20000个用户
+        this.users = new LRUCache({ max: 20000 }) // Cache 20000 users
         this.conversations = {}
         this.topics = {}
         this.topicMessages = {}
@@ -111,7 +111,7 @@ export class ClientStore {
     async getUser(userId) {
         let user = this.users[userId]
         if (user) {
-            if (Date.now() - user.cachedAt < 1000 * 60 * 5) { // 5分钟
+            if (Date.now() - user.cachedAt < 1000 * 60 * 5) { // 5 minutes
                 return user
             }
             return user
@@ -123,7 +123,7 @@ export class ClientStore {
     async getTopic(topicId) {
         let topic = this.topics[topicId]
         if (topic) {
-            if (Date.now() - topic.cachedAt < 1000 * 60) { // 1分钟内的缓存有效
+            if (Date.now() - topic.cachedAt < 1000 * 60) { // Cache valid for 1 minute
                 return topic
             }
         }

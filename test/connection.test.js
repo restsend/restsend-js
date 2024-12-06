@@ -37,8 +37,11 @@ describe('Connection states', function () {
             expect(topic.attendee).toEqual('vitalik')
             expect(msg.topicId).toEqual(topic.id)
             expect(msg.attendee).toEqual('guido')
-            //expect(msg.content).toHaveProperty('text')
-            //expect(msg.content.text).toEqual('hello from unittest')
+            if (msg.content.type === 'text') {
+                expect(msg.content.text).toEqual('hello from unittest')
+            } else {
+                expect(msg.content.type).toEqual('topic.join')
+            }
         }
         await guido.doSendText({ topic, text: 'hello from unittest' })
         expect(await waitUntil(() => {

@@ -24,9 +24,14 @@ describe('sync conversation', function () {
         expect(await guido.removeConversation('guido:vitalik')).toStrictEqual(true)
         let { items, updatedAt, hasMore } = await guido.services.getChatList()
         items = items || []
-        // expect items not exist vitalik chat, key is topicId
+        // expect items not to contain vitalik chat, key is topicId
         items.forEach(item => {
             expect(item.topicId).not.toEqual('guido:vitalik')
         })
+    })
+
+    it('should throw an error for invalid user', async () => {
+        var guido = await authClient('guido', 'guido:demo')
+        await expect(guido.allowChatWithUser({ userId: 'invalidUser' })).rejects.toThrow('User not found')
     })
 })

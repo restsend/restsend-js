@@ -71,7 +71,7 @@ export default class ServicesApi {
         return await this.backend.post(`${this.endpoint}/api/chat/remove/${topicId}`)
     }
 
-    // Get chat logs in descending order, sync messages in chat groups (single and group chat)
+    // Get chat logs in descending order, sync messages in chat conversations (single and group chat)
     async getChatLogsDesc(topicId, lastSeq, maxSeq, updatedAt, limit) {
         return await this.backend.post(`${this.endpoint}/api/chat/sync/${topicId}`, { lastSeq, maxSeq, updatedAt, limit })
     }
@@ -84,47 +84,47 @@ export default class ServicesApi {
         return await this.backend.post(`${this.endpoint}/api/topic/info/${topicId}`)
     }
 
-    // Sync group members information
-    async syncGroupMembers(topicId, updatedAt, limit) {
+    // Sync topic members information
+    async syncTopicMembers(topicId, updatedAt, limit) {
         return await this.backend.post(`${this.endpoint}/api/topic/members/${topicId}`, { updatedAt, limit })
     }
 
-    // Create group chat
-    async createGroup(name, icon, members) {
+    // Create topic chat
+    async createTopic(name, icon, members) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/create`, { name, icon, members })
         return resp.items ?? []
     }
 
-    // Apply to join group chat
-    async joinGroup(topicId, source, message, memo) {
+    // Apply to join topic chat
+    async joinTopic(topicId, source, message, memo) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/knock/${topicId}`, { source, message, memo })
         return resp.items ?? []
     }
 
-    // Get group chat application list, this is not called
-    async getGroupApplyList(params) {
+    // Get topic application list, this is not called
+    async getTopicApplyList(params) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/admin/list_knock/${params}`)
         return resp ?? []
     }
-    // Get all group chat application list
-    async getAllGroupApplyList(params) {
+    // Get all topic chat application list
+    async getAllTopicApplyList(params) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/admin/list_knock_all/`)
         return resp ?? []
     }
-    // Accept group chat application
-    async acceptGroup(params) {
+    // Accept topic chat application
+    async acceptTopic(params) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/admin/knock/accept/${params.topicId}/${params.userId}`, params)
         return resp ?? []
     }
 
-    // Dismiss group chat
-    async dismissGroup(topicId) {
+    // Dismiss topic chat
+    async dismissTopic(topicId) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/dismiss/${topicId}`, { topicId })
         return resp.items ?? []
     }
 
-    // Update group notice
-    async updateGroupNotice(topicId, text) {
+    // Update topic notice
+    async updateTopicNotice(topicId, text) {
         const resp = await this.backend.post(`${this.endpoint}/api/topic/admin/notice/${topicId}`, { text })
         return resp.items ?? []
     }
@@ -138,18 +138,18 @@ export default class ServicesApi {
         }
     }
 
-    // Mute the entire group, if duration is 0 then unmute
-    async silentGroup(topicId, duration) {
+    // Mute the entire topic, if duration is 0 then unmute
+    async silentTopic(topicId, duration) {
         return await this.backend.post(`${this.endpoint}/api/topic/admin/silent_topic/${topicId}`, { duration })
     }
 
-    // Mute group member, if duration is 0 then unmute
-    async silentGroupMember(topicId, userId, duration) {
+    // Mute topic member, if duration is 0 then unmute
+    async silentTopicMember(topicId, userId, duration) {
         return await this.backend.post(`${this.endpoint}/api/topic/admin/silent/${topicId}/${userId}`, { duration })
     }
 
-    // Remove a group member
-    async removeGroupMember(topicId, userId) {
+    // Remove a topic member
+    async removeTopicMember(topicId, userId) {
         return await this.backend.post(`${this.endpoint}/api/topic/admin/kickout/${topicId}/${userId}`)
 
     }

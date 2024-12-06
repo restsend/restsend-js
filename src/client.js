@@ -22,7 +22,7 @@ export class Client extends Connection {
     }
 
     /**
-     * 处理服务器推送的消息
+     * Handle messages pushed by the server
      */
     async handleRequest(req) {
         const { topicId, senderId, type } = req
@@ -88,7 +88,7 @@ export class Client extends Connection {
     }
 
     /**
-     * 用户名和密码登录
+     * Login with username and password
      * @param {String} username
      * @param {String} password
      * @returns {User}
@@ -100,7 +100,7 @@ export class Client extends Connection {
         return await this.services.login(username, password)
     }
     /**
-     * 采用缓存的token登录
+     * Login with cached token
      * @returns {UserInfo}
      */
     async loginWithToken({username, token}) {
@@ -119,7 +119,7 @@ export class Client extends Connection {
         await this.services.logout()
     }
     /**
-     * 开始同步会话列表
+     * Start syncing conversation list
      */
     beginSyncConversations() {
         const limit = 100
@@ -155,34 +155,34 @@ export class Client extends Connection {
     }
 
     /**
-     * 获取当前用户的userId， 如果没有登录，返回空
-     * @returns {String} 返回用户的userId
+     * Get the current user's userId, return empty if not logged in
+     * @returns {String} userId
      */
     get myId() {
         return this.services.myId || ''
     }
     /**
-     * 获取当前用户的token， 如果没有登录，返回空
+     * Get the current user's token, return empty if not logged in
      */
     get token() {
         return this.services.authToken || ''
     }
 
     /**
-     * 获取群申请的数量
+     * Get the number of topic applications
      * @returns {Number}
      */
     get topicsKnockCount() { }
     /**
-     * 获取会话的数量
+     * Get the number of conversations
      * @returns {Number}
      */
     get conversationsCount() { }
 
     /**
-     * 发起一个单聊请求
+     * Initiate a one-on-one chat request
      * @param {User} user
-     * @returns {Topic} 返回一个会话信息, 可能会为空, 表示请求失败
+     * @returns {Topic} conversation info, may be null if request fails
      */
     async tryChatWithUser(user) {
         let topic = await this.services.chatWithUser(user.id)
@@ -197,18 +197,18 @@ export class Client extends Connection {
         return topic
     }
     /**
-     * 获取一个会话的信息
+     * Get conversation information
      * @param {String} topicId
-     * @returns {Conversation} 返回一个会话信息
+     * @returns {Conversation} conversation info
      */
     async getConversation(topicId) {
         return await this.services.getTopic(topicId)
     }
 
     /**
-     * 删除一个会话， 这个会同步到服务器
+     * Delete a conversation, this will sync to the server
      * @param {String} topicId
-     * @throws {Exception} 如果会话不存在，会抛出异常
+     * @throws {Exception} if the conversation does not exist
      */
     async removeConversation(topicId) {
         let resp = await this.services.removeChat(topicId)
@@ -217,16 +217,16 @@ export class Client extends Connection {
     }
 
     /**
-     * 置顶或者取消会话
+     * Pin or unpin a conversation
      * @param {String} topicId
      * @param {Boolean} sticky
-     * @throws {Exception} 如果会话不存在，会抛出异常
+     * @throws {Exception} if the conversation does not exist
      */
     async setConversationSticky(topicId) { }
     /**
-     * 已读一个会话
+     * Mark a conversation as read
      * @param {String} topicId
-     * @throws {Exception} 如果会话不存在，会抛出异常
+     * @throws {Exception} if the conversation does not exist
      */
     setConversationRead(topicId) {
         let topic = this.store.getTopic(topicId)
@@ -238,17 +238,17 @@ export class Client extends Connection {
     }
 
     /**
-     * 获取聊天的详细信息
+     * Get detailed chat information
      * @param {String} topicId
-     * @returns {Topic} 聊天的详细信息
+     * @returns {Topic} detailed chat information
      */
     async getTopic(topicId) {
         return await this.store.getTopic(topicId)
     }
     /**
-     * 获取群的管理员信息
+     * Get topic admin information
      * @param {String} topicId
-     * @returns {Array<User>} 返回管理员列表
+     * @returns {Array<User>} list of admins
      * */
     async getTopicAdmins(topicId) {
         let topic = await this.getTopic(topicId)
@@ -258,164 +258,164 @@ export class Client extends Connection {
     }
 
     /**
-     * 创建一个多人聊天, 至少要3个人才能创建， 可以在服务端进行限制
+     * Create a topic chat, at least 3 people are required, can be restricted on the server
      * @param {Object} params
      * @param {String} params.name
-     * @param {String} params.icon http地址, 需要先在客户端合成头像，如果为空，服务器会自动生成
-     * @param {Array<String>} params.members 参与者的id
+     * @param {String} params.icon http address, needs to be synthesized on the client side, if empty, the server will generate automatically
+     * @param {Array<String>} params.members participant ids
      * */
     async createTopic({ name, icon, members }) {
-        return await this.services.createGroup(name, icon, members)
+        return await this.services.createTopic(name, icon, members)
     }
 
     /**
-     * 同步聊天群的成员信息
+     * Sync topic member information
      * @param {Object} params
      * @param {String} params.topicId
      * @param {String} params.updatedAt
      * @param {String} params.limit
-     * @returns {Array<User>} 返回群成员列表
+     * @returns {Array<User>} list of topic members
      * */
     async getTopicMembers({ topicId, updatedAt, limit }) {
-        return await this.services.syncGroupMembers(topicId, updatedAt, limit)
+        return await this.services.syncTopicMembers(topicId, updatedAt, limit)
     }
 
     /**
-     * 更新群的信息
+     * Update topic information
      * @param {String} topicId
      * @param {String} name
      * @param {String} icon
      * */
     updateTopic(topicId, name, icon) { }
     /**
-     * 更新群的公告
+     * Update topic notice
      * @param {String} topicId
      * @param {String} text
      * */
     async updateTopicNotice({ topicId, text }) {
-        return await this.services.updateGroupNotice(topicId, text)
+        return await this.services.updateTopicNotice(topicId, text)
     }
 
     /**
-     * 禁言整个群, 如果duration为空, 则解除禁言
+     * Mute the entire topic, if duration is empty, unmute
      * @param {String} topicId
-     * @param {String} duration 格式为1h, 1d, 1w, 1m, 1y， 为空就是解除禁言
+     * @param {String} duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
      * */
     async silentTopic({ topicId, duration }) {
-        return await this.services.silentGroup(topicId, duration)
+        return await this.services.silentTopic(topicId, duration)
     }
 
     /**
-     * 禁言某个成员, 如果duration为空, 则解除禁言
+     * Mute a member, if duration is empty, unmute
      * @param {String} topicId
      * @param {String} userId
-     * @param {String} duration 格式为1h, 1d, 1w, 1m, 1y， 为空就是解除禁言
+     * @param {String} duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
      * */
     async silentTopicMember({ topicId, userId, duration }) {
-        return await this.services.silentGroupMember(topicId, userId, duration)
+        return await this.services.silentTopicMember(topicId, userId, duration)
     }
 
     /**
-     * 添加管理员
+     * Add an admin
      * @param {String} topicId
      * @param {String} userId
      * */
     addTopicAdmin({ topicId, userId }) { }
     /**
-     * 删除管理员
+     * Remove an admin
      * @param {String} topicId
      * @param {String} userId
      * */
     removeTopicAdmin({ topicId, userId }) { }
     /**
-     * 转让群主
+     * Transfer topic ownership
      * @param {String} topicId
      * @param {String} userId
      * */
     transferTopic({ topicId, userId }) { }
     /**
-     * 退出群聊,所有者不能退出群聊，只能解散群聊
+     * Leave topic chat, owner cannot leave, only disband
      * @param {String} topicId
      * */
     quitTopic(topicId) { }
     /**
-     * 解散群聊
+     * Disband topic chat
      * @param {String} topicId
      * */
     async dismissTopic(topicId) {
-        return await this.services.dismissGroup(topicId)
+        return await this.services.dismissTopic(topicId)
     }
 
     /**
-     * 申请加入群聊
+     * Apply to join topic chat
      * @param {String} topicId
      * @param {String} source
      * @param {String} message
      * @param {String} memo
      * */
     joinTopic({ topicId, source, message, memo }) {
-        return this.services.joinGroup(topicId, source, message, memo)
+        return this.services.joinTopic(topicId, source, message, memo)
     }
 
     /**
-     * 同意加入群聊
+     * Accept topic chat join request
      * @param {String} topicId
      * @param {String} userId
      * */
     acceptTopicJoin({ topicId, userId }) { }
     /**
-     * 拒绝加入群聊，只有管理员能操作
+     * Decline topic chat join request, only admins can operate
      * @param {String} topicId
      * @param {String} userId
-     * @param {String} message 理由
+     * @param {String} message reason
      * */
     declineTopicJoin({ topicId, userId, message }) { }
     /**
-     * 邀请加入群聊
+     * Invite to join topic chat
      * @param {String} topicId
      * @param {String} userId
      */
     inviteTopicMember({ topicId, userId }) { }
     /**
-     * 移除群成员
+     * Remove topic member
      * @param {String} topicId
      * @param {String} userId
      * */
     async removeTopicMember({ topicId, userId }) {
-        return await this.services.removeGroupMember(topicId, userId)
+        return await this.services.removeTopicMember(topicId, userId)
     }
 
     /**
-     * 设置/取消群免打扰
+     * Set/unset topic do not disturb
      * @param {String} topicId
      * @param {Boolean} mute
      * */
     setTopicMute({ topicId, boolean }) { }
     /**
-     * 清空聊天记录,是否同步到服务端
+     * Clear chat history, whether to sync to the server
      * @param {String} topicId
-     * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
+     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
      * */
     cleanTopicHistory({ topicId, sync }) { }
     /**
-     * 删除单条消息, 是否同步到服务端
+     * Delete a single message, whether to sync to the server
      * @param {String} topicId
      * @param {String} chatId
-     * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
+     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
      */
     removeMessage({ topicId, chatId, sync }) { }
     /**
-     * 删除单条消息, 是否同步到服务端
+     * Delete multiple messages, whether to sync to the server
      * @param {String} topicId
-     * @param {Array<String>} chatId 多条消息的id
-     * @param {Boolean} sync 是否同步到服务端, 如果是群聊这个参数无效
+     * @param {Array<String>} chatId multiple message ids
+     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
      */
     removeMessages({ topicId, chatId, sync }) { }
 
     /**
-     * 获取一个用户的详细信息, 用户不存在返回undefined
+     * Get detailed information of a user, return undefined if user does not exist
      * @param {String} userId
-     * @return {Array<User>} 用户信息
+     * @return {Array<User>} user information
      **/
     async getUser(userId) {
         return this.store.getUser(userId)
@@ -423,7 +423,7 @@ export class Client extends Connection {
 
 
     /**
-     * 建群
+     * Create a topic
      * @param userId
      * @param source
      * @param message
@@ -435,28 +435,28 @@ export class Client extends Connection {
     }
 
     /**
-     * 联系人申请列表
+     * Contact application list
      * @param {String}
-     * @returns {Array<User>} 联系人列表
+     * @returns {Array<User>} contact list
      * */
     async getKnocks() {
         return await this.services.listFriendApply()
     }
 
     /**
-     * 设置联系人备注
+     * Set contact remark
      * @param {String} userId
      * @param {String} remark
      */
     setUserRemark({ userId, remark }) { }
     /**
-     * 设置/取消联系人星标
+     * Set/unset contact star
      * @param {String} userId
      * @param {Boolean} star
      */
     setUserStar({ userId, star }) { }
     /**
-     * 设置/取消联系人黑名单
+     * Set/unset contact blacklist
      * @param {String} userId
      * @param {Boolean} block
      * */
@@ -469,7 +469,7 @@ export class Client extends Connection {
     }
 
     /**
-     * 设置允许聊天
+     * Set allow chat with user
      * @param {String} userId
      * */
     async allowChatWithUser(userId) {
@@ -478,9 +478,9 @@ export class Client extends Connection {
 
     /**
      * 
-     * @param {file} file  文件对象
-     * @param {String} topicId 是否群聊里面上传的文件
-     * @param {Boolean} isPrivate 是否是私有文件
+     * @param {file} file file object
+     * @param {String} topicId whether the file is uploaded in a topic chat
+     * @param {Boolean} isPrivate whether it is a private file
      * @returns 
      */
     async uploadFile({ file, topicId, isPrivate }) {

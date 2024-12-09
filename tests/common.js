@@ -1,9 +1,11 @@
 import WebSocket from "ws";
 import { Client } from '../src/client';
 import { loadEnv } from 'vite'
+import { assert } from "vitest";
 
 const env = loadEnv('development', process.cwd())
 export const server = env.VITE_API_SERVER
+assert(server, 'VITE_API_SERVER is not set in .env.development')
 
 export async function waitUntil(fn, timeout) {
     let start = Date.now()

@@ -18,18 +18,28 @@ export class Client extends Connection {
             'chat': this._onChat.bind(this),
             'read': this._onRead.bind(this),
             'kickout': this._onKickout.bind(this),
+            'nop':this._onNop.bind(this),
+            'system':this._onSystem.bind(this),
         }
     }
 
     /**
      * Handle messages pushed by the server
      */
-    async handleRequest(req) {
+    async _handleRequest(req) {
         const { topicId, senderId, type } = req
         const handler = this.handlers[type]
         if (handler) {
             await handler(topicId, senderId, req)
         }
+    }
+
+    async _onNop(topicId, senderId, req) {
+        // do nothing
+    }
+
+    async _onSystem(topicId, senderId, req) {
+        this.onSystemMessage(req)
     }
 
     async _onTyping(topicId, senderId, req) {
@@ -66,6 +76,7 @@ export class Client extends Connection {
 
         let conversation = await Conversation.fromTopic(topic, chat_log).build(this)
         conversation.unread = topic.unread
+        
         this.onConversationUpdated(conversation)
     }
 
@@ -421,7 +432,6 @@ export class Client extends Connection {
         return this.store.getUser(userId)
     }
 
-
     /**
      * Create a topic
      * @param userId
@@ -472,7 +482,7 @@ export class Client extends Connection {
      * Set allow chat with user
      * @param {String} userId
      * */
-    async allowChatWithUser(userId) {
+    async allowChatWithUser({userId}) {
         return await this.services.allowChatWithUser(userId)
     }
 

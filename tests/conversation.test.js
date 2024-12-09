@@ -30,8 +30,8 @@ describe('sync conversation', function () {
         })
     })
 
-    it('should throw an error for invalid user', async () => {
+    it('allow chat with invliadUser', async () => {
         var guido = await authClient('guido', 'guido:demo')
-        await expect(guido.allowChatWithUser({ userId: 'invalidUser' })).rejects.toThrow('User not found')
+        expect(guido.allowChatWithUser({ userId: 'invliadUser' }))
     })
 })

@@ -8,11 +8,11 @@
   "main": "./dist/restsend-sdk.umd.js",
   "module": "./dist/restsend-sdk.es.js",
   "dependencies": {
-    "lru-cache": "^9.1.2"
+    "lru-cache": "^11.0.2"
   },
   "devDependencies": {
-    "vite": "^5.0.7",
-    "vitest": "^1.0.4",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8",
     "ws": "^8.13.0"
   },
   "scripts": {

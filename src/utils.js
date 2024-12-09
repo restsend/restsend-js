@@ -40,7 +40,6 @@ export function getFirstLetter(str) {
 export class Logger {
     constructor() {
         this.level = 'debug'
-
         this.debug = console.debug
         this.info = console.info
         this.warn = console.warn

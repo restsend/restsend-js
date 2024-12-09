@@ -1,3 +1,5 @@
+import { ChatRequest } from "./types"
+
 export class Callback {
     constructor() {
         /**
@@ -109,5 +111,11 @@ export class Callback {
          * @param {String} duration Duration, format is 1h, 1m, 1d, etc., empty for cancel
          */
         this.onTopicSilentMember = (topic, member, duration) => { }
+
+        /**
+         * System message
+         * @param {ChatRequest} req System message
+         */
+        this.onSystemMessage = (req) => { }
     }
 }

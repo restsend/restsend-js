@@ -108,10 +108,10 @@ export class ClientStore {
         return store
     }
 
-    async getUser(userId) {
+    async getUser(userId, maxAge=1000*60) { // 1 minute
         let user = this.users[userId]
-        if (user) {
-            if (Date.now() - user.cachedAt < 1000 * 60 * 5) { // 5 minutes
+        if (user && maxAge > 0) {
+            if (Date.now() - user.cachedAt < maxAge) {
                 return user
             }
             return user
@@ -120,14 +120,17 @@ export class ClientStore {
         return this.updateUser(userId, info)
     }
 
-    async getTopic(topicId) {
+    async getTopic(topicId, maxAge=1000*60) { // 1 minute
         let topic = this.topics[topicId]
-        if (topic) {
-            if (Date.now() - topic.cachedAt < 1000 * 60) { // Cache valid for 1 minute
+        if (topic && maxAge > 0) {
+            if (Date.now() - topic.cachedAt < maxAge) { 
                 return topic
             }
         }
+        return await this.updateTopic(topicId, topic)
+    }
 
+    async updateTopic(topicId, topic) {
         topic = Object.assign(new Topic(), await this.services.getTopic(topicId))
 
         topic.isOwner = topic.owner === this.services.myId
@@ -141,8 +144,6 @@ export class ClientStore {
         this.topics[topicId] = topic
         return topic
     }
-
-
     updateUser(userId, data) {
         let user = Object.assign(new User(), data)
         if (!user.id) {

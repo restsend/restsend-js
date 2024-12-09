@@ -168,7 +168,7 @@ export class Connection extends Callback {
         req = Object.assign(new ChatRequest(), req)
         req.receivedAt = Date.now()
         // Call the subclass's handler function
-        this.handleRequest(req).then((code) => {
+        this._handleRequest(req).then((code) => {
             if (req.chatId)
                 this.sendResponse(req.chatId, code || 200)
         })

@@ -355,7 +355,15 @@ export class Conversation {
          * @type {String} session id
          */
         this.topicId = null
+
+        /**
+         * @type {String} session owner id (only for single chat)
+         * */
         this.attendee = null
+        /**
+         * @type {String} session owner id
+         * */
+        this.ownerId = null
         /**
          * @type {Boolean} is group chat
          *  */
@@ -395,6 +403,7 @@ export class Conversation {
         this.lastMessageSeq = 0
         this.lastSenderId = null
         this.lastReadSeq = 0
+        this.lastReadAt = null
 
         this.updatedAt = null
         /**
@@ -509,5 +518,13 @@ export class OnMessageResponse {
          * @type {int} response code
          * */
         this.code = 200
+    }
+}
+export class ConversationUpdateFields {
+    constructor() {
+        this.sticky = false
+        this.mute = false
+        this.tags = []
+        this.extra = null
     }
 }

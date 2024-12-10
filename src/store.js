@@ -170,7 +170,7 @@ export class ClientStore {
      * @param {ChatLog} logItem
      * @returns {Conversation}
      */
-    processIncoming(topic, logItem) {
+    processIncoming(topic, logItem, hasRead) {
         topic.lastSeq = logItem.seq > topic.lastSeq ? logItem.seq : topic.lastSeq
         if (!logItem.content || logItem.unreadable) {
             return
@@ -178,102 +178,66 @@ export class ClientStore {
         if (logItem.seq == 0 || !logItem.chatId) {
             return
         }
-        let conversation = Conversation.fromTopic(topic, logItem).build(this)        
-        /*
-        TODO: port this code
-         if let Some(content) = req.content.as_ref() {
-        match ContentType::from(content.content_type.clone()) {
-            ContentType::None | ContentType::Recall => {}
-            ContentType::TopicJoin => {
-                conversation.last_message_at = req.created_at.clone();
-                conversation.is_partial = true; // force fetch conversation
-            }
-            ContentType::TopicChangeOwner => {
-                conversation.topic_owner_id = Some(req.attendee.clone());
-            }
-            ContentType::ConversationUpdate => {
-                match serde_json::from_str::<ConversationUpdateFields>(&content.text) {
-                    Ok(fields) => {
-                        conversation.updated_at = req.created_at.clone();
-                        if fields.extra.is_some() {
-                            conversation.extra = fields.extra;
-                        }
-                        if fields.tags.is_some() {
-                            conversation.tags = fields.tags;
-                        }
-                        if fields.remark.is_some() {
-                            conversation.remark = fields.remark;
-                        }
-                        conversation.sticky = fields.sticky.unwrap_or(conversation.sticky);
-                        conversation.mute = fields.mute.unwrap_or(conversation.mute);
-                    }
-                    Err(_) => {}
+        const content = logItem.content
+        let conversation = Conversation.fromTopic(topic, logItem).build(this)
+        switch (content.type) {
+            case '':
+            case 'recall':
+                break
+            case 'topic.join':
+                conversation.lastMessageAt = logItem.createdAt
+                conversation.isPartial = true
+                break
+            case 'topic.change.owner':
+                conversation.ownerId = logItem.senderId
+                break
+            case 'conversation.update':
+                conversation.updatedAt = logItem.createdAt
+
+                /** @type {ConversationUpdateFields} */
+                const fields = JSON.parse(content.text)
+                conversation.extra = fields.extra || conversation.extra
+                conversation.tags = fields.tags || conversation.tags
+                conversation.remark = fields.remark || conversation.remark
+                conversation.sticky = fields.sticky || conversation.sticky
+                conversation.mute = fields.mute || conversation.mute
+                break
+            case 'conversation.removed':
+                return
+            case 'topic.update':
+                const topicData = JSON.parse(content.text)
+                conversation.name = topicData.name || conversation.name
+                conversation.icon = topicData.icon || conversation.icon
+                conversation.topicExtra = topicData.extra || conversation.topicExtra
+                break
+            case 'update.extra':
+                if (conversation.lastMessageSeq == logItem.seq) {
+                    conversation.lastMessage.extra = content.extra
                 }
-            }
-            ContentType::ConversationRemoved => {
-                t.remove("", &conversation.topic_id).await.ok();
-                return None;
-            }
-            ContentType::TopicUpdate => {
-                match serde_json::from_str::<crate::models::Topic>(&content.text) {
-                    Ok(topic) => {
-                        conversation.name = topic.name;
-                        conversation.icon = topic.icon;
-                        conversation.topic_extra = topic.extra;
-                    }
-                    Err(_) => {}
-                }
-            }
-            ContentType::UpdateExtra => {
-                //TODO: ugly code, need refactor, need a last_message_chat_id field in Conversation
-                if let Some(lastlog_seq) = conversation.last_message_seq {
-                    let log_t = message_storage.table::<ChatLog>().await;
-                    if let Some(log_in_store) = log_t.get(&req.topic_id, &content.text).await {
-                        if lastlog_seq == log_in_store.seq {
-                            if let Some(last_message_content) = conversation.last_message.as_mut() {
-                                last_message_content.extra = content.extra.clone();
-                            }
-                        }
-                    }
-                }
-            }
-            _ => {
-                if req.seq > conversation.last_read_seq
-                    && !content.unreadable
-                    && !req.chat_id.is_empty()
-                {
-                    conversation.unread += 1;
-                }
-            }
+                break
         }
-    }
-    if req.seq >= conversation.last_seq {
-        conversation.last_seq = req.seq;
 
-        let unreadable = req.content.as_ref().map(|v| v.unreadable).unwrap_or(false);
-        if !unreadable && !req.chat_id.is_empty() {
-            conversation.last_sender_id = req.attendee.clone();
-            conversation.last_message_at = req.created_at.clone();
-            conversation.last_message = req.content.clone();
-            conversation.last_message_seq = Some(req.seq);
-            conversation.updated_at = req.created_at.clone();
+        if (logItem.seq >= conversation.lastReadSeq && !logItem.unreadable && !logItem.chatId) {
+            conversation.unread += 1
         }
-    }
+        
+        if (logItem.seq >= conversation.lastSeq) {
+            conversation.lastSeq = logItem.seq
+            conversation.lastSenderId = logItem.senderId
+            conversation.lastMessageAt = logItem.createdAt
+            conversation.lastMessage = logItem
+            conversation.lastMessageSeq = logItem.seq
+            conversation.updatedAt = logItem.createdAt
+        }
 
-    if has_read {
-        conversation.last_read_at = Some(req.created_at.clone());
-        conversation.last_read_seq = conversation.last_seq;
-        conversation.unread = 0;
-    }
-
-    conversation.cached_at = now_millis();
-    t.set("", &conversation.topic_id, Some(&conversation))
-        .await
-        .ok();
-    Some(conversation)
-    */
+        if (hasRead) {
+            conversation.lastReadSeq = logItem.seq
+            conversation.lastReadAt = logItem.createdAt
+            conversation.unread = 0
+        }
 
         this.getMessageStore(topic.id).updateMessages([logItem])
+        this.updateConversation(conversation)
         return conversation
     }
 }

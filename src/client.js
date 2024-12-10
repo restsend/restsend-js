@@ -55,7 +55,7 @@ export class Client extends Connection {
         if (hasRead) {
             this.doRead({topicId, lastSeq: logItem.seq}).then()
         }
-        let conversation = this.store.processIncoming(topic, logItem)
+        let conversation = this.store.processIncoming(topic, logItem, hasRead)
         if(conversation) {
             this.onConversationUpdated(conversation)
         } else {

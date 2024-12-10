@@ -29,6 +29,7 @@ describe('Connection states', function () {
             expect(msg.content).toHaveProperty('type')
             expect(msg.content).toHaveProperty('text')
             expect(msg.content.text).toEqual('hello from unittest')
+            return {code:200, hasRead:true}
         }
 
         guido.onTopicMessage = (topic, msg) => {
@@ -42,6 +43,7 @@ describe('Connection states', function () {
             } else {
                 expect(msg.content.type).toEqual('topic.join')
             }
+            return {code:200, hasRead:false}
         }
         await guido.doSendText({ topic, text: 'hello from unittest' })
         expect(await waitUntil(() => {

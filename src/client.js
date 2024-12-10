@@ -13,33 +13,9 @@ export class Client extends Connection {
         this.services = new ServiceApi(endpoint)
         this.store = new ClientStore(this.services)
 
-        this.handlers = {
-            'typing': this._onTyping.bind(this),
-            'chat': this._onChat.bind(this),
-            'read': this._onRead.bind(this),
-            'kickout': this._onKickout.bind(this),
-            'nop':this._onNop.bind(this),
-            'system':this._onSystem.bind(this),
-        }
-    }
-
-    /**
-     * Handle messages pushed by the server
-     */
-    async _handleRequest(req) {
-        const { topicId, senderId, type } = req
-        const handler = this.handlers[type]
-        if (handler) {
-            await handler(topicId, senderId, req)
-        }
-    }
-
-    async _onNop(topicId, senderId, req) {
-        // do nothing
-    }
-
-    async _onSystem(topicId, senderId, req) {
-        this.onSystemMessage(req)
+        this.handlers['typing'] =  this._onTyping.bind(this)
+        this.handlers['chat'] = this._onChat.bind(this)
+        this.handlers['read'] = this._onRead.bind(this)
     }
 
     async _onTyping(topicId, senderId, req) {
@@ -62,22 +38,30 @@ export class Client extends Connection {
             this.store.updateUser(req.attendee, req.attendeeProfile)
         }
 
-        let sender = await this.getUser(req.attendee) || req.attendeeProfile
-        let chat_log = Object.assign(new ChatLog(), req)
-        chat_log.senderId = req.attendee
-        chat_log.sender = sender
-        chat_log.createdAt = formatDate(req.createdAt)
-        chat_log.updatedAt = formatDate(req.createdAt)
-
-        topic.lastSeq = chat_log.seq > topic.lastSeq ? chat_log.seq : topic.lastSeq
-
-        this.store.updateTopicMessage(topic, chat_log)
-        this.onTopicMessage(topic, chat_log)
-
-        let conversation = await Conversation.fromTopic(topic, chat_log).build(this)
-        conversation.unread = topic.unread
         
-        this.onConversationUpdated(conversation)
+        let logItem = Object.assign(new ChatLog(), req)
+        logItem.senderId = req.attendee
+
+        Object.defineProperty(logItem, 'sender', {
+            get: async () => {
+                return await this.getUser(req.attendee) || req.attendeeProfile
+            }
+        })
+
+        logItem.createdAt = formatDate(req.createdAt)
+        logItem.updatedAt = formatDate(req.createdAt)
+
+        const {code, hasRead} = this.onTopicMessage(topic, logItem) || {}
+        if (hasRead) {
+            this.doRead({topicId, lastSeq: logItem.seq}).then()
+        }
+        let conversation = this.store.processIncoming(topic, logItem)
+        if(conversation) {
+            this.onConversationUpdated(conversation)
+        } else {
+            this.onConversationRemoved({topicId})
+        }
+        return code
     }
 
     async _onRead(topicId, senderId, req) {
@@ -91,11 +75,6 @@ export class Client extends Connection {
         topic.unread = 0
         let conversation = await Conversation.fromTopic(topic).build(this)
         this.onConversationUpdated(conversation)
-    }
-
-    async _onKickout(topicId, senderId, req) {
-        this.onKickoffByOtherClient(req.message)
-        this.shutdown()
     }
 
     /**

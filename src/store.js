@@ -1,4 +1,4 @@
-import { User, Topic, ChatLog, TopicNotice } from './types'
+import { User, Topic, ChatLog, TopicNotice, Conversation } from './types'
 import { LRUCache } from 'lru-cache'
 import { formatDate } from './utils'
 
@@ -97,6 +97,12 @@ export class ClientStore {
         this.lastSyncConversation = undefined
     }
 
+    /**
+     * Get message store for topic
+     * @param {String} topicId
+     * @param {Number} bucketSize, default 100
+     * @returns {MessageStore}
+     */
     getMessageStore(topicId, bucketSize) {
         let store = this.topicMessages[topicId]
         if (store) {
@@ -158,7 +164,116 @@ export class ClientStore {
         this.conversations[conversation.topicId] = conversation
     }
 
-    updateTopicMessage(topic, chatLog) {
-        this.getMessageStore(topic.id).updateMessages([chatLog])
+    /**
+     * Process incoming chat message
+     * @param {Topic} topic
+     * @param {ChatLog} logItem
+     * @returns {Conversation}
+     */
+    processIncoming(topic, logItem) {
+        topic.lastSeq = logItem.seq > topic.lastSeq ? logItem.seq : topic.lastSeq
+        if (!logItem.content || logItem.unreadable) {
+            return
+        }
+        if (logItem.seq == 0 || !logItem.chatId) {
+            return
+        }
+        let conversation = Conversation.fromTopic(topic, logItem).build(this)        
+        /*
+        TODO: port this code
+         if let Some(content) = req.content.as_ref() {
+        match ContentType::from(content.content_type.clone()) {
+            ContentType::None | ContentType::Recall => {}
+            ContentType::TopicJoin => {
+                conversation.last_message_at = req.created_at.clone();
+                conversation.is_partial = true; // force fetch conversation
+            }
+            ContentType::TopicChangeOwner => {
+                conversation.topic_owner_id = Some(req.attendee.clone());
+            }
+            ContentType::ConversationUpdate => {
+                match serde_json::from_str::<ConversationUpdateFields>(&content.text) {
+                    Ok(fields) => {
+                        conversation.updated_at = req.created_at.clone();
+                        if fields.extra.is_some() {
+                            conversation.extra = fields.extra;
+                        }
+                        if fields.tags.is_some() {
+                            conversation.tags = fields.tags;
+                        }
+                        if fields.remark.is_some() {
+                            conversation.remark = fields.remark;
+                        }
+                        conversation.sticky = fields.sticky.unwrap_or(conversation.sticky);
+                        conversation.mute = fields.mute.unwrap_or(conversation.mute);
+                    }
+                    Err(_) => {}
+                }
+            }
+            ContentType::ConversationRemoved => {
+                t.remove("", &conversation.topic_id).await.ok();
+                return None;
+            }
+            ContentType::TopicUpdate => {
+                match serde_json::from_str::<crate::models::Topic>(&content.text) {
+                    Ok(topic) => {
+                        conversation.name = topic.name;
+                        conversation.icon = topic.icon;
+                        conversation.topic_extra = topic.extra;
+                    }
+                    Err(_) => {}
+                }
+            }
+            ContentType::UpdateExtra => {
+                //TODO: ugly code, need refactor, need a last_message_chat_id field in Conversation
+                if let Some(lastlog_seq) = conversation.last_message_seq {
+                    let log_t = message_storage.table::<ChatLog>().await;
+                    if let Some(log_in_store) = log_t.get(&req.topic_id, &content.text).await {
+                        if lastlog_seq == log_in_store.seq {
+                            if let Some(last_message_content) = conversation.last_message.as_mut() {
+                                last_message_content.extra = content.extra.clone();
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {
+                if req.seq > conversation.last_read_seq
+                    && !content.unreadable
+                    && !req.chat_id.is_empty()
+                {
+                    conversation.unread += 1;
+                }
+            }
+        }
+    }
+    if req.seq >= conversation.last_seq {
+        conversation.last_seq = req.seq;
+
+        let unreadable = req.content.as_ref().map(|v| v.unreadable).unwrap_or(false);
+        if !unreadable && !req.chat_id.is_empty() {
+            conversation.last_sender_id = req.attendee.clone();
+            conversation.last_message_at = req.created_at.clone();
+            conversation.last_message = req.content.clone();
+            conversation.last_message_seq = Some(req.seq);
+            conversation.updated_at = req.created_at.clone();
+        }
+    }
+
+    if has_read {
+        conversation.last_read_at = Some(req.created_at.clone());
+        conversation.last_read_seq = conversation.last_seq;
+        conversation.unread = 0;
+    }
+
+    conversation.cached_at = now_millis();
+    t.set("", &conversation.topic_id, Some(&conversation))
+        .await
+        .ok();
+    Some(conversation)
+    */
+
+        this.getMessageStore(topic.id).updateMessages([logItem])
+        return conversation
     }
 }

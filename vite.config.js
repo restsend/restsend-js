@@ -1,5 +1,5 @@
 const path = require('path')
-const { defineConfig } = require('vite')
+const { defineConfig } = require('vite');
 
 module.exports = defineConfig({
     build: {
@@ -8,5 +8,8 @@ module.exports = defineConfig({
             name: 'restsend-sdk',
             fileName: (format) => `restsend-sdk.${format}.js`
         }
+    },
+    test: {
+        setupFiles: 'tests/setup.js',
     }
 });

@@ -26,7 +26,6 @@ export function createWebsocketWithToken(url, token) {
             req.on('socket', (socket) => {
                 socket.on('connect', () => {
                     req.setHeader('Authorization', `Bearer ${token}`);
-
                     req.end();
                 })
             })

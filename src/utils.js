@@ -16,27 +16,6 @@ export function randText(length = 8) {
     return result
 }
 
-export function getFirstLetter(str) {
-    let firstChar = str.charAt(0).toUpperCase()
-    if (firstChar >= 'A' && firstChar <= 'Z') {
-        return firstChar
-    }
-
-    if (firstChar >= '0' && firstChar <= '9') {
-        return firstChar
-
-    }
-    if (typeof pinyin === 'undefined') {
-        return '#'
-    }
-    if (firstChar >= '\u4e00' && firstChar <= '\u9fa5') {
-        // Chinese
-        let r = pinyin(firstChar, { toneType: 'none', style: pinyin.STYLE_FIRST_LETTER })
-        if (r) return r[0].toUpperCase()
-    }
-    return '#'
-}
-
 export class Logger {
     constructor() {
         this.level = 'debug'

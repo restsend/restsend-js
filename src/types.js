@@ -323,17 +323,28 @@ export class ChatLog {
          */
         this.recall = false
     }
+    /**
+     * @type {Boolean} is unreadable
+     * */
+    get unreadable() {
+        return this.content?.unreadable
+    }
 }
 
 export class Conversation {
-    static fromTopic(topic, chat_log) {
+    /**
+     * @param {Topic} topic
+     * @param {ChatLog} logItem
+     * @returns {Conversation}
+     */
+    static fromTopic(topic, logItem) {
         let obj = Object.assign(new Conversation(), topic)
         obj.topicId = topic.id
-        if (chat_log) {
-            obj.lastSenderId = chat_log.senderId
+        if (logItem) {
+            obj.lastSenderId = logItem.senderId
             obj.lastMessage = {
-                text: chat_log.content.text,
-                senderId: chat_log.senderId,
+                text: logItem.content.text,
+                senderId: logItem.senderId,
             }
         }
         return obj
@@ -409,16 +420,33 @@ export class Conversation {
          * */
         this.topicOwnerID = null
     }
-
-    async build(client) {
+    /**
+     * @param {Client} client
+     * @returns {Conversation}
+     */
+    build(client) {
         this.updatedAt = formatDate(this.updatedAt || this.createdAt)
         if (this.lastSenderId) {
-            this.lastMessage.sender = await client.getUser(this.lastSenderId)
+            Object.defineProperty(this.lastMessage, 'sender', {
+                get: async () => {
+                    return await client.getUser(this.lastSenderId)
+                }
+            })
         }
 
         if (!this.multiple && this.attendee) {
-            let attendee = await client.getUser(this.attendee)
-            this.name = attendee.displayName
+            Object.defineProperty(this, 'name', {
+                get: async () => {
+                    let attendee = await client.getUser(this.attendee)
+                    return attendee.displayName
+                }
+            })
+            Object.defineProperty(this, 'icon', {
+                get: async () => {
+                    let attendee = await client.getUser(this.attendee)
+                    return attendee.avatar
+                }
+            })
         }
         return this
     }
@@ -467,5 +495,19 @@ export class ChatRequest {
          * */
         this.message = null
         this.receivedAt = undefined
+    }
+}
+
+
+export class OnMessageResponse {
+    constructor() {
+        /**
+         * @type {Boolean} is read
+         * */
+        this.hasRead = false
+        /**
+         * @type {int} response code
+         * */
+        this.code = 200
     }
 }

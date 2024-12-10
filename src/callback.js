@@ -1,4 +1,4 @@
-import { ChatRequest } from "./types"
+import { ChatRequest, OnMessageResponse } from "./types"
 
 export class Callback {
     constructor() {
@@ -59,6 +59,7 @@ export class Callback {
          * Received chat message, retracted messages will also trigger this callback
          * @param {Topic} topic
          * @param {ChatLog} message
+         * @returns {OnMessageResponse} Return true to stop the message from being processed
          * */
         this.onTopicMessage = (topic, message) => { }
         /**

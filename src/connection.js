@@ -18,6 +18,12 @@ export class Connection extends Callback {
         endpoint = endpoint || ''
         this.endpoint = endpoint.replace(/http/, 'ws')
         this.start()
+        this.handlers = {
+            'nop': this._onNop.bind(this),
+            'system': this._onSystem.bind(this),
+            'resp': this._onResponse.bind(this),
+            'kickout': this._onKickout.bind(this),
+        }
     }
     /**
      * Trigger reconnection immediately after the app switches to the foreground to ensure the connection.
@@ -102,7 +108,12 @@ export class Connection extends Callback {
                 this.tryReconnect()
             }, reconnectInterval)
         }
-        const url = `${endpoint}/api/connect?device=${this.device}`
+
+        let url = `${endpoint}/api/connect?device=${this.device}`
+        // check is same origin
+        if (endpoint.indexOf(`://${window.location}`) === -1) {
+            url = `${url}&token=${this.token}`
+        }
 
         if (this.newWebSocket) {
             this.ws = this.newWebSocket(url)
@@ -161,28 +172,39 @@ export class Connection extends Callback {
             return
 
         let req = JSON.parse(event.data)
-        if (req.type === 'resp') {
-            this._onResponse(req) // Handle response
-            return
-        }
         req = Object.assign(new ChatRequest(), req)
         req.receivedAt = Date.now()
         // Call the subclass's handler function
         this._handleRequest(req).then((code) => {
-            if (req.chatId)
+            if (req.chatId && req.type !== 'resp') {
                 this.sendResponse(req.chatId, code || 200)
+            }
         })
     }
 
-    sendResponse(chatId, code) {
-        this.doSendRequest({
-            type: 'resp',
-            chatId,
-            code,
-        }).then(() => { })
+    /**
+     * Handle messages pushed by the server
+     */
+    async _handleRequest(req) {
+        const { topicId, senderId, type } = req
+        const handler = this.handlers[type]
+        if (handler) {
+            await handler(topicId, senderId, req)
+        } else {
+            logger.warn('unknown message type', req)
+            return 501
+        }
     }
 
-    async _onResponse(req) {
+    async _onNop(topicId, senderId, req) {
+        // do nothing
+    }
+
+    async _onSystem(topicId, senderId, req) {
+        this.onSystemMessage(req)
+    }
+
+    async _onResponse(topicId, senderId, req) {
         const w = this.waiting[req.chatId]
         if (w) {
             delete this.waiting[req.chatId]
@@ -191,6 +213,20 @@ export class Connection extends Callback {
         else {
             logger.warn('no waiting for resp', req)
         }
+    }
+
+    async _onKickout(topicId, senderId, req) {
+        this.onKickoffByOtherClient(req.message)
+        this.shutdown()
+    }
+
+
+    sendResponse(chatId, code) {
+        this.doSendRequest({
+            type: 'resp',
+            chatId,
+            code,
+        }).then(() => { })
     }
 
     async doSendRequest(req, retry) {
@@ -232,9 +268,6 @@ export class Connection extends Callback {
         })
     }
 
-    async processSendChatRequest(topic, req) {
-        return req
-    }
     /**
      * Typing indicator, only for personal chat
      * @param {Topic} topic
@@ -250,10 +283,11 @@ export class Connection extends Callback {
       * Chat message read
       * @param {Topic} topic
       */
-    async doRead(topic) {
+    async doRead({topicId,lastSeq}) {
         let req = new ChatRequest()
-        req.topicId = topic.id
+        req.topicId = topicId
         req.type = 'read'
+        req.seq = lastSeq
         return await this.doSendRequest(req, false)
     }
 
@@ -282,7 +316,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      */
     async doSendText({ topic, text, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -293,7 +327,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
     /**
      * Send image message
@@ -303,7 +336,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      */
     async doSendImage({ topic, urlOrData, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -314,7 +347,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
     /**
      * Send voice message
@@ -325,7 +357,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      * */
     async doSendVoice({ topic, urlOrData, duration, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -337,7 +369,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
     /**
      * Send video message
@@ -349,7 +380,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      */
     async doSendVideo({ topic, urlOrData, thumbnail, duration, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -362,7 +393,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
 
     /**
@@ -375,7 +405,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      * */
     async doSendFile({ topic, urlOrData, filename, size, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -388,7 +418,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
 
     /**
@@ -401,7 +430,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      */
     async doSendLocation({ topic, latitude, longitude, address, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -413,7 +442,6 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
 
     /**
@@ -424,7 +452,7 @@ export class Connection extends Callback {
      * @option @param {String} replyId Reply message id
      */
     async doSendLink({ topic, url, mentions, replyId }) {
-        let req = await this.sendAndWaitResponse({
+        return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
             topicId: topic.id,
@@ -435,6 +463,5 @@ export class Connection extends Callback {
                 replyId,
             },
         })
-        return await this.processSendChatRequest(topic, req)
     }
 }

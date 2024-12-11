@@ -46,6 +46,12 @@ export const ChatRequestType = {
     Kickout: 'kickout',
     System: 'system',    
 }
+
+export const LogStatusSending = 0
+export const LogStatusSent = 1
+export const LogStatusReceived = 2
+export const LogStatusRead = 3
+export const LogStatusFailed = 4
 export class User {
     constructor(id) {
         /**
@@ -288,10 +294,6 @@ export class ChatLog {
          * */
         this.chatId = null
         /**
-         * @type {String} session id
-         * */
-        this.topicId = null
-        /**
          * @type {String} sender id
          * */
         this.senderId = null
@@ -321,7 +323,7 @@ export class ChatLog {
         /**
          * @type {Boolean} is retracted
          */
-        this.recall = false
+        this.recall = false       
     }
     /**
      * @type {Boolean} is unreadable
@@ -339,7 +341,7 @@ export class Conversation {
      */
     static fromTopic(topic, logItem) {
         let obj = Object.assign(new Conversation(), topic)
-        obj.topicId = topic.id
+        obj.topicId = topic.id        
         if (logItem) {
             obj.lastSenderId = logItem.senderId
             obj.lastMessage = {
@@ -522,9 +524,26 @@ export class OnMessageResponse {
 }
 export class ConversationUpdateFields {
     constructor() {
+        /**
+         * @type {Boolean} sticky
+         */
         this.sticky = false
+        /**
+         * @type {Boolean} mute
+         */
         this.mute = false
+        /**
+         * @type {Array<String>} remark
+         */
         this.tags = []
+        /**
+         * @type {Map} extra
+         */
         this.extra = null
+
+        /**
+         * @type {String} remark
+         */
+        this.remark = null
     }
 }

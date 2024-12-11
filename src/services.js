@@ -21,15 +21,22 @@ export default class ServicesApi {
     /**
      * User registration
      */
-    async signup(email, password) {
-        const resp = await this.backend.post(`${this.endpoint}/auth/register`, { email, password, remember: true })
+    async signup(email, password, remember=true) {
+        const resp = await this.backend.post(`${this.endpoint}/auth/register`, { email, password, remember})
+        return resp
+    }
+
+    async guestLogin(guestId, remember=true) {
+        const resp = await this.backend.post(`${this.endpoint}/auth/guest/login`, { guestId, remember})
+        this.authToken = resp.token
+        this.myId = guestId
         return resp
     }
     /**
      * User login
      */
-    async login(email, password) {
-        const resp = await this.backend.post(`${this.endpoint}/auth/login`, { email, password, remember: true })
+    async login(email, password, remember=true) {
+        const resp = await this.backend.post(`${this.endpoint}/auth/login`, { email, password, remember })
         this.authToken = resp.token
         this.myId = email
         return resp

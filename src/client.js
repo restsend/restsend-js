@@ -68,7 +68,7 @@ export class Client extends Connection {
         let topic = await this.getTopic(topicId)
         if (!topic) {
             // bad topic id
-            logger.warn('bad topic id', topicId)
+            logger.warn('bad topic id', topicId, senderId, req)
             return
         }
 
@@ -78,16 +78,22 @@ export class Client extends Connection {
     }
 
     /**
+     * Guest login
+     */
+    async guestLogin({guestId}) {
+        return await this.services.guestLogin(guestId)
+    }
+    /**
      * Login with username and password
      * @param {String} username
      * @param {String} password
      * @returns {User}
      */
-    async login({username, password}) {
-        return await this.services.login(username, password)
+    async login({username, password, remember}) {
+        return await this.services.login(username, password, remember)
     }
     async logout() {
-        return await this.services.login(username, password)
+        return await this.services.logout()
     }
     /**
      * Login with cached token

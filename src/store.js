@@ -1,7 +1,8 @@
-import { User, Topic, ChatLog, TopicNotice, Conversation } from './types'
+import { User, Topic, ChatLog, TopicNotice, Conversation, ConversationUpdateFields, LogStatusSent, LogStatusSending, LogStatusReceived } from './types'
 import { LRUCache } from 'lru-cache'
 import { formatDate } from './utils'
 
+const MAX_RECALL_SECS = 60 * 2
 const MessageBucketSize = 100
 class MessageStore {
     constructor(services, topicId, bucketSize) {
@@ -85,6 +86,17 @@ class MessageStore {
             this.messages.push(log)
         }
         this.messages.sort((a, b) => a.seq - b.seq)
+    }
+    clearMessages() {
+        this.messages = []
+    }
+    /**
+     * Get message by chat id
+     * @param {String} chatId
+     * @returns {ChatLog}
+     * */
+    getMessageByChatId(chatId) {
+        return this.messages.find(m => m.chatId == chatId)
     }
 }
 export class ClientStore {
@@ -178,16 +190,71 @@ export class ClientStore {
         if (logItem.seq == 0 || !logItem.chatId) {
             return
         }
+        this.saveIncomingLog(topic.id, logItem)
+        return this.mergeChatLog(topic, logItem, hasRead)
+    }
+
+    /**
+     * Save incoming chat log
+     * @param {String} topicId
+     * @param {ChatLog} logItem
+     * @param {Boolean} hasRead
+     * @returns {void}
+        */
+    saveIncomingLog(topicId, logItem) {
+        const store = this.getMessageStore(topicId)
+        let oldLog = undefined
+        switch (logItem.content.type) {
+            case 'topic.join':
+                if (logItem.senderId == this.services.myId) {
+                    this.getMessageStore(topicId).clearMessages()
+                }
+                break
+            case 'recall':
+                oldLog = store.getMessageByChatId(logItem.content.text)
+                if (oldLog && !oldLog.recall) {
+                    oldLog.recall = true
+                    let now = Date.now()
+                    if (now - oldLog.createdAt >= 1000 * MAX_RECALL_SECS) {
+                        break
+                    }
+                    if (oldLog.senderId != logItem.senderId) {
+                        break
+                    }
+                    oldLog.content = { type: '' }
+                }
+                break
+            case 'update.extra':
+                const extra = logItem.content.extra
+                const updateChatId = logItem.content.text
+                oldLog = store.getMessageByChatId(updateChatId)
+                if (oldLog) {
+                    oldLog.content.extra = extra
+                }
+                break
+        }
+        const pendingLog = store.getMessageByChatId(logItem.chatId)
+        if (pendingLog) {
+            if (pendingLog.status == LogStatusSending) {
+                logItem.status = LogStatusSent
+            }
+        } else {
+            logItem.status = LogStatusReceived
+        }
+        store.updateMessages([logItem])
+        this.getMessageStore(topicId).updateMessages([logItem])
+    }
+    /**
+     * Merge chat log into conversation
+     * @param {Topic} topic
+     * @param {ChatLog} logItem
+     * @param {Boolean} hasRead
+     * @returns {Conversation}
+     */
+    mergeChatLog(topic, logItem, hasRead) {
         const content = logItem.content
         let conversation = Conversation.fromTopic(topic, logItem).build(this)
-        switch (content.type) {
-            case '':
-            case 'recall':
-                break
-            case 'topic.join':
-                conversation.lastMessageAt = logItem.createdAt
-                conversation.isPartial = true
-                break
+        switch (content?.type) {
             case 'topic.change.owner':
                 conversation.ownerId = logItem.senderId
                 break
@@ -203,6 +270,7 @@ export class ClientStore {
                 conversation.mute = fields.mute || conversation.mute
                 break
             case 'conversation.removed':
+                this.getMessageStore(topic.id).clearMessages() // clear messages
                 return
             case 'topic.update':
                 const topicData = JSON.parse(content.text)
@@ -211,7 +279,7 @@ export class ClientStore {
                 conversation.topicExtra = topicData.extra || conversation.topicExtra
                 break
             case 'update.extra':
-                if (conversation.lastMessageSeq == logItem.seq) {
+                if (conversation.lastMessage && conversation.lastMessageSeq == logItem.seq) {                    
                     conversation.lastMessage.extra = content.extra
                 }
                 break
@@ -222,10 +290,10 @@ export class ClientStore {
         }
         
         if (logItem.seq >= conversation.lastSeq) {
+            conversation.lastMessage = content
             conversation.lastSeq = logItem.seq
             conversation.lastSenderId = logItem.senderId
             conversation.lastMessageAt = logItem.createdAt
-            conversation.lastMessage = logItem
             conversation.lastMessageSeq = logItem.seq
             conversation.updatedAt = logItem.createdAt
         }
@@ -235,8 +303,6 @@ export class ClientStore {
             conversation.lastReadAt = logItem.createdAt
             conversation.unread = 0
         }
-
-        this.getMessageStore(topic.id).updateMessages([logItem])
         this.updateConversation(conversation)
         return conversation
     }

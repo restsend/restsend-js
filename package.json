@@ -5,12 +5,19 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/restsend-sdk.umd.js",
-  "module": "./dist/restsend-sdk.es.js",
+  "main": "./dist/restsendsdk.umd.js",
+  "module": "./dist/restsendsdk.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/restsendsdk.es.js",
+      "require": "./dist/restsendsdk.umd.js"
+    }
+  },
   "dependencies": {
     "lru-cache": "^11.0.2"
   },
   "devDependencies": {
+    "alpinejs": "^3.14.7",
     "vite": "^6.0.3",
     "vitest": "^2.1.8",
     "ws": "^8.13.0"

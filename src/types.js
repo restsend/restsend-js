@@ -44,7 +44,7 @@ export const ChatRequestType = {
     Read: 'read',
     Response: 'resp',
     Kickout: 'kickout',
-    System: 'system',    
+    System: 'system',
 }
 
 export const LogStatusSending = 0
@@ -323,7 +323,7 @@ export class ChatLog {
         /**
          * @type {Boolean} is retracted
          */
-        this.recall = false       
+        this.recall = false
     }
     /**
      * @type {Boolean} is unreadable
@@ -341,7 +341,7 @@ export class Conversation {
      */
     static fromTopic(topic, logItem) {
         let obj = Object.assign(new Conversation(), topic)
-        obj.topicId = topic.id        
+        obj.topicId = topic.id
         if (logItem) {
             obj.lastSenderId = logItem.senderId
             obj.lastMessage = {
@@ -412,7 +412,7 @@ export class Conversation {
          * @type {Boolean} is muted
          */
         this.mute = false
-        
+
         this.members = 0
         /**
          * @type {Array<String>} tags

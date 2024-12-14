@@ -283,7 +283,7 @@ export class Connection extends Callback {
       * Chat message read
       * @param {Topic} topic
       */
-    async doRead({topicId,lastSeq}) {
+    async doRead({ topicId, lastSeq }) {
         let req = new ChatRequest()
         req.topicId = topicId
         req.type = 'read'

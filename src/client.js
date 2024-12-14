@@ -13,7 +13,7 @@ export class Client extends Connection {
         this.services = new ServiceApi(endpoint)
         this.store = new ClientStore(this.services)
 
-        this.handlers['typing'] =  this._onTyping.bind(this)
+        this.handlers['typing'] = this._onTyping.bind(this)
         this.handlers['chat'] = this._onChat.bind(this)
         this.handlers['read'] = this._onRead.bind(this)
     }
@@ -38,7 +38,7 @@ export class Client extends Connection {
             this.store.updateUser(req.attendee, req.attendeeProfile)
         }
 
-        
+
         let logItem = Object.assign(new ChatLog(), req)
         logItem.senderId = req.attendee
 
@@ -51,15 +51,15 @@ export class Client extends Connection {
         logItem.createdAt = formatDate(req.createdAt)
         logItem.updatedAt = formatDate(req.createdAt)
 
-        const {code, hasRead} = this.onTopicMessage(topic, logItem) || {}
+        const { code, hasRead } = this.onTopicMessage(topic, logItem) || {}
         if (hasRead) {
-            this.doRead({topicId, lastSeq: logItem.seq}).then()
+            this.doRead({ topicId, lastSeq: logItem.seq }).then()
         }
         let conversation = this.store.processIncoming(topic, logItem, hasRead)
-        if(conversation) {
+        if (conversation) {
             this.onConversationUpdated(conversation)
         } else {
-            this.onConversationRemoved({topicId})
+            this.onConversationRemoved({ topicId })
         }
         return code
     }
@@ -80,7 +80,7 @@ export class Client extends Connection {
     /**
      * Guest login
      */
-    async guestLogin({guestId}) {
+    async guestLogin({ guestId }) {
         return await this.services.guestLogin(guestId)
     }
     /**
@@ -89,7 +89,7 @@ export class Client extends Connection {
      * @param {String} password
      * @returns {User}
      */
-    async login({username, password, remember}) {
+    async login({ username, password, remember }) {
         return await this.services.login(username, password, remember)
     }
     async logout() {
@@ -99,7 +99,7 @@ export class Client extends Connection {
      * Login with cached token
      * @returns {UserInfo}
      */
-    async loginWithToken({username, token}) {
+    async loginWithToken({ username, token }) {
         if (!token) {
             throw new Error('token not found')
         }
@@ -467,7 +467,7 @@ export class Client extends Connection {
      * Set allow chat with user
      * @param {String} userId
      * */
-    async allowChatWithUser({userId}) {
+    async allowChatWithUser({ userId }) {
         return await this.services.allowChatWithUser(userId)
     }
 

@@ -10,8 +10,6 @@ class MessageStore {
         this.bucketSize = bucketSize || MessageBucketSize
         this.topicId = topicId
         this.messages = []
-        this.localLastSeq = 0
-        this.remoteLastSeq = 0
         this.lastSync = undefined
     }
     // Get messages in reverse order, starting from seq and looking for limit messages
@@ -126,7 +124,7 @@ export class ClientStore {
         return store
     }
 
-    async getUser(userId, maxAge=1000*60) { // 1 minute
+    async getUser(userId, maxAge = 1000 * 60) { // 1 minute
         let user = this.users[userId]
         if (user && maxAge > 0) {
             if (Date.now() - user.cachedAt < maxAge) {
@@ -138,10 +136,10 @@ export class ClientStore {
         return this.updateUser(userId, info)
     }
 
-    async getTopic(topicId, maxAge=1000*60) { // 1 minute
+    async getTopic(topicId, maxAge = 1000 * 60) { // 1 minute
         let topic = this.topics[topicId]
         if (topic && maxAge > 0) {
-            if (Date.now() - topic.cachedAt < maxAge) { 
+            if (Date.now() - topic.cachedAt < maxAge) {
                 return topic
             }
         }
@@ -279,7 +277,7 @@ export class ClientStore {
                 conversation.topicExtra = topicData.extra || conversation.topicExtra
                 break
             case 'update.extra':
-                if (conversation.lastMessage && conversation.lastMessageSeq == logItem.seq) {                    
+                if (conversation.lastMessage && conversation.lastMessageSeq == logItem.seq) {
                     conversation.lastMessage.extra = content.extra
                 }
                 break
@@ -288,7 +286,7 @@ export class ClientStore {
         if (logItem.seq >= conversation.lastReadSeq && !logItem.unreadable && !logItem.chatId) {
             conversation.unread += 1
         }
-        
+
         if (logItem.seq >= conversation.lastSeq) {
             conversation.lastMessage = content
             conversation.lastSeq = logItem.seq

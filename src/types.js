@@ -324,12 +324,21 @@ export class ChatLog {
          * @type {Boolean} is retracted
          */
         this.recall = false
+        this.isSentByMe = false
     }
     /**
      * @type {Boolean} is unreadable
      * */
-    get unreadable() {
-        return this.content?.unreadable
+    get readable() {
+        return this.content.unreadable !== true
+    }
+    compareSort(other) {
+        if (this.seq === other.seq) {
+            const lhsDate = formatDate(this.createdAt)
+            const rhsDate = formatDate(other.createdAt)
+            return lhsDate - rhsDate
+        }
+        return this.seq - other.seq
     }
 }
 
@@ -342,12 +351,11 @@ export class Conversation {
     static fromTopic(topic, logItem) {
         let obj = Object.assign(new Conversation(), topic)
         obj.topicId = topic.id
-        if (logItem) {
+        if (logItem && logItem.readable) {
             obj.lastSenderId = logItem.senderId
-            obj.lastMessage = {
-                text: logItem.content.text,
-                senderId: logItem.senderId,
-            }
+            obj.lastMessage = logItem.content
+            obj.lastMessageAt = logItem.createdAt
+            obj.lastMessageSeq = logItem.seq
         }
         return obj
     }
@@ -430,6 +438,15 @@ export class Conversation {
          * @type {String} topic owner id
          * */
         this.topicOwnerID = null
+    }
+    compareSort(other) {
+        const lhsDate = formatDate(this.lastMessageAt || this.updatedAt)
+        const rhsDate = formatDate(other.lastMessageAt || other.updatedAt)
+        //const diff = this.sticky - other.sticky
+       // if (diff === 0) {
+            return rhsDate - lhsDate
+        //}
+        //return diff
     }
     /**
      * @param {Client} client

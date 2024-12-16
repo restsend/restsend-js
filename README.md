@@ -2,10 +2,12 @@
 ## Requirements
 - nodejs >= 18
 
-## Install
+## Run dev 
 ```bash
-npm install 
+npm i 
+npm run dev
 ```
+
 ## Test
 ```bash 
 npm test

@@ -82,9 +82,9 @@ export class Callback {
         this.onConversationUpdated = (conversation) => { }
         /**
          * Conversation removed
-         * @param {Conversation} conversation
+         * @param {String} conversaionId
          */
-        this.onConversationRemoved = (conversation) => { }
+        this.onConversationRemoved = (conversaionId) => { }
         /**
          * Kicked out of the group, everyone will receive this, remove local cache
          * @param {Topic} topic

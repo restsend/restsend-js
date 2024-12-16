@@ -29,7 +29,7 @@ export default class ServicesApi {
     async guestLogin(guestId, remember = true) {
         const resp = await this.backend.post(`${this.endpoint}/api/guest/login`, { guestId, remember })
         this.authToken = resp.token
-        this.myId = guestId
+        this.myId = resp.email
         return resp
     }
     /**
@@ -38,7 +38,7 @@ export default class ServicesApi {
     async login(email, password, remember = true) {
         const resp = await this.backend.post(`${this.endpoint}/auth/login`, { email, password, remember })
         this.authToken = resp.token
-        this.myId = email
+        this.myId = resp.email
         return resp
     }
 
@@ -79,8 +79,8 @@ export default class ServicesApi {
     }
 
     // Get chat logs in descending order, sync messages in chat conversations (single and group chat)
-    async getChatLogsDesc(topicId, lastSeq, maxSeq, updatedAt, limit) {
-        return await this.backend.post(`${this.endpoint}/api/chat/sync/${topicId}`, { lastSeq, maxSeq, updatedAt, limit })
+    async getChatLogsDesc(topicId, lastSeq, limit) {
+        return await this.backend.post(`${this.endpoint}/api/chat/sync/${topicId}`, { lastSeq, limit })
     }
 
     /**
@@ -89,6 +89,13 @@ export default class ServicesApi {
      * */
     async getTopic(topicId) {
         return await this.backend.post(`${this.endpoint}/api/topic/info/${topicId}`)
+    }
+    /**
+     * Get information of a single chat session
+     * @param {String} topicId
+     * */
+    async getConversation(topicId) {
+        return await this.backend.post(`${this.endpoint}/api/chat/info/${topicId}`)
     }
 
     // Sync topic members information

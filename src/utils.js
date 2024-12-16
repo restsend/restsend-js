@@ -1,7 +1,7 @@
 
 export function formatDate(date) {
     if (!date) return ''
-    if (typeof data === 'string') {
+    if (typeof date === 'string') {
         date = new Date(date)
     }
     return date

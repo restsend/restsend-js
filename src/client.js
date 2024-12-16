@@ -59,7 +59,7 @@ export class Client extends Connection {
         if (conversation) {
             this.onConversationUpdated(conversation)
         } else {
-            this.onConversationRemoved({ topicId })
+            this.onConversationRemoved(topicId)
         }
         return code
     }
@@ -117,8 +117,7 @@ export class Client extends Connection {
     /**
      * Start syncing conversation list
      */
-    beginSyncConversations() {
-        const limit = 100
+    beginSyncConversations(limit) {
         let count = 0
 
         let syncAt = this.store.lastSyncConversation
@@ -127,18 +126,16 @@ export class Client extends Connection {
         }
 
         let doSync = async () => {
-            let { items, updatedAt, hasMore } = await this.services.getChatList(syncAt, limit)
-
+            let { items, updatedAt, hasMore } = await this.services.getChatList(syncAt, limit || 100)
             if (!items) {
                 return
             }
-
             for (let idx = 0; idx < items.length; idx++) {
                 let conversation = await Object.assign(new Conversation(), items[idx]).build(this);
                 this.store.updateConversation(conversation)
-                count++
-                this.onConversationUpdated(conversation)
+                this.onConversationUpdated(conversation) 
             }
+            count += items.length
             syncAt = updatedAt
             if (hasMore) {
                 await doSync()
@@ -148,6 +145,21 @@ export class Client extends Connection {
             this.store.lastSyncConversation = syncAt
             logger.debug('sync conversations done count:', count)
         })
+    }
+    /**
+     * Sync chat logs
+     * @param {String} topicId
+     * @param {Number} lastSeq
+     * @param {Number} limit
+     * @returns {Object} { logs, hasMore }
+     * */
+    async syncChatlogs({topicId, lastSeq, limit}) {
+        let conversation = await this.getConversation(topicId)
+        if (!conversation) {
+            throw new Error('conversation not found')
+        }
+        let msgStore = this.store.getMessageStore(conversation.topicId)
+        return msgStore.getMessages(lastSeq || conversation.lastMessageSeq, limit)
     }
 
     /**
@@ -192,14 +204,6 @@ export class Client extends Connection {
         this.onConversationUpdated(conversation)
         return topic
     }
-    /**
-     * Get conversation information
-     * @param {String} topicId
-     * @returns {Conversation} conversation info
-     */
-    async getConversation(topicId) {
-        return await this.services.getTopic(topicId)
-    }
 
     /**
      * Delete a conversation, this will sync to the server
@@ -240,6 +244,14 @@ export class Client extends Connection {
      */
     async getTopic(topicId) {
         return await this.store.getTopic(topicId)
+    }
+    /**
+     * Get conversation information
+     * @param {String} topicId
+     * @returns {Conversation} conversation info
+     */
+    async getConversation(topicId) {
+        return await this.store.getConversation(topicId)
     }
     /**
      * Get topic admin information

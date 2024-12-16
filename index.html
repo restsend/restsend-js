@@ -25,29 +25,50 @@
             <h2 class="text-lg font-semibold">Conversation</h2>
         </div>
         <ul class="flex-1 overflow-y-auto">
-            <template x-for="(item, idx) in conversations" :key="idx">
-                <li class="p-4 border" @click="chatWith(item.id)">
-                    <span x-text="item.name"></span>
+            <template x-for="item in conversations" :key="item.topicId">
+                <li class="p-4 border-b border-gray-300  hover:bg-gray-200 cursor-pointer " @click="chatWith(item)">
+                    <div><span x-text="item.name"></div>
+                    <div>
+                        </span><span x-text="item.topicId"></span><span class="px-2 text-gray-300" x-text="'('+item.lastSeq+')'"></span>
+                    </div>
                 </li>
             </template>
         </ul>
     </div>
     <div class="flex flex-col w-3/4 border-r border-gray-300">
-        <div class="flex-1 p-4 overflow-y-auto">
-            <div class="mb-4">
-                <div class="bg-blue-100 p-2 rounded-lg inline-block">Hello, how can I help you?</div>
-            </div>
-            <div class="mb-4 text-right">
-                <div class="bg-green-100 p-2 rounded-lg inline-block">I need some assistance.</div>
-            </div>
+        <div class="flex-1 p-4 overflow-y-auto" id="chatbox">
+            <template x-for="item in messages" :key="item.chatId">
+                    <div>
+                        <template x-if="!item.isSentByMe">
+                            <div class="mb-4">
+                                <div class="bg-blue-100 p-2 rounded-lg inline-block" x-html="renderLog(item)"></div>
+                                <div>
+                                    <span x-text="item.createdAt.toLocaleString()"></span><span class="px-2 text-gray-300" x-text="item.seq"></span>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="item.isSentByMe">
+                            <div class="mb-4 text-right">
+                                <div class="bg-green-100 p-2 rounded-lg inline-block" x-html="renderLog(item)"></div>
+                                <div>
+                                    <span x-text="item.createdAt.toLocaleString()"></span><span class="px-2 text-gray-300" x-text="item.seq"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+            </template>
         </div>
         <div class="p-4 border-t border-gray-300 flex">
-            <input type="text" class="flex-1 p-2 border border-gray-300 rounded-lg" placeholder="Type your message...">
-            <button class="ml-4 p-2 bg-blue-500 text-white rounded-lg">Send</button>
+            <input type="text" class="flex-1 p-2 border border-gray-300 rounded-lg" placeholder="Type your message..." x-model="textMessage" @keyup.enter="sendMessage">
+            <button class="ml-4 p-2 bg-blue-500 text-white rounded-lg" @click="sendMessage">Send</button>
         </div>
     </div>
     <div class="flex flex-col w-1/2 bg-indigo-100">
         <div class="flex-1 p-4 overflow-y-auto text-gray-600">
+            <div class="p-4 border-gray-300 flex justify-between">
+                <h2 class="text-lg font-semibold">Logs</h2>
+                <button @click="clearLogs" class="py-1 bg-gray-500 text-white rounded-lg px-2">Clear</button>
+            </div>
             <template x-for="(item, idx) in logs" :key="idx">
                 <p>
                     <span x-text="item.time"></span> : <span x-text="item.text"></span>

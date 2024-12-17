@@ -96,7 +96,7 @@ class DemoApp {
     }
 
     onConversationUpdated(conversation) {
-        this.logit('conversation updated', conversation.id, 'lastSeq:', conversation.lastSeq)
+        this.logit('conversation updated', conversation.id, 'lastSeq:', conversation.lastSeq, 'unread:', conversation.unread)
         let idx = this.conversations.findIndex((c) => c.topicId === conversation.topicId)
         if (idx >= 0) {
             this.conversations[idx] = conversation
@@ -125,7 +125,8 @@ class DemoApp {
     }
 
     onTopicMessage(topic, message) {
-        this.logit('incoming message id:', topic.id, 'type:',message.content.type, 'text',message.content.text, 'chatId:',message.content.chatId, "seq:", message.seq)
+        let hasRead = this.current && this.current.topicId === topic.id
+        return {code:200, hasRead}
     }
 
     async sendMessage() {
@@ -146,6 +147,8 @@ class DemoApp {
     async chatWith(conversation) {
         this.messages = [] // clear chat logs
         this.current = conversation
+        this.client.setConversationRead({topicId: conversation.topicId})
+        this.current.unread = 0
         await this.fetchLastLogs({topicId: conversation.topicId})
     }
     

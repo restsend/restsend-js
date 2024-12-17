@@ -229,12 +229,14 @@ export class Client extends Connection {
      * @throws {Exception} if the conversation does not exist
      */
     setConversationRead(topicId) {
-        let topic = this.store.getTopic(topicId)
-        if (!topic) {
-            throw new Error('topic not found')
+        let conversation = this.store.getConversation(topicId)
+        if (!conversation) {
+            throw new Error('conversation not found')
         }
-        topic.unread = 0
-        this.doRead(topicId)
+        if (conversation.unread > 0) {
+            conversation.unread = 0
+            this.doRead(topicId).then()
+        }
     }
 
     /**

@@ -249,7 +249,7 @@ export class ClientStore {
         switch (logItem.content.type) {
             case 'topic.join':
                 if (logItem.senderId == this.services.myId) {
-                    this.getMessageStore(topicId).clearMessages()
+                    store.clearMessages()
                 }
                 break
             case 'recall':
@@ -284,7 +284,6 @@ export class ClientStore {
             logItem.status = LogStatusReceived
         }
         store.updateMessages([logItem])
-        this.getMessageStore(topicId).updateMessages([logItem])
     }
     /**
      * Merge chat log into conversation
@@ -295,7 +294,13 @@ export class ClientStore {
      */
     mergeChatLog(topic, logItem, hasRead) {
         const content = logItem.content
+        const prevConversation = this.conversations[topic.id]
         let conversation = Conversation.fromTopic(topic, logItem).build(this)
+        if (prevConversation) {
+            conversation.unread = prevConversation.unread
+            conversation.lastReadSeq = prevConversation.lastReadSeq
+            conversation.lastReadAt = prevConversation.lastReadAt            
+        }
         switch (content?.type) {
             case 'topic.change.owner':
                 conversation.ownerId = logItem.senderId
@@ -326,8 +331,8 @@ export class ClientStore {
                 }
                 break
         }
-
-        if (logItem.seq >= conversation.lastReadSeq && logItem.readable && logItem.id) {
+        
+        if (logItem.seq >= conversation.lastReadSeq && logItem.readable && logItem.chatId) {
             conversation.unread += 1
         }
 

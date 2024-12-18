@@ -140,7 +140,7 @@ class DemoApp {
             this.logit('no current conversation')
             return
         }
-        await this.client.doSendText({topic:{id:this.current.topicId}, text})
+        await this.client.doSendText({topicId:this.current.topicId, text})
         this.textMessage = ''
     }
     /**
@@ -183,7 +183,7 @@ class DemoApp {
         }
     }
 
-    onScrollMessages(event) {
+    async onScrollMessages(event) {
         if (event.target.scrollTop > 0) {
             return
         }
@@ -197,7 +197,7 @@ class DemoApp {
             firstSeq = this.messages[0].seq
         }
         firstSeq = Math.max(firstSeq, this.current.startSeq)
-        this.fetchLastLogs({topicId: this.current.topicId, lastSeq: firstSeq}).then()
+        await this.fetchLastLogs({topicId: this.current.topicId, lastSeq: firstSeq})
     }
 
     renderLog(item) {
@@ -208,8 +208,25 @@ class DemoApp {
                 return `<div><a href="${item.content.text}" target="_blank"</a>${item.content.placeholder} size(${item.content.size})</div>`
             case 'image':
                 return `<div><img class="w-32 h-32" src="${item.content.text}"></div>`
+            case 'file':
+                const filename = item.content.placeholder || item.content.text.split('/').pop()
+                return `<div><a href="${item.content.text}" target="_blank">${filename} size(${item.content.size})</a></div>`
             default:
                 return `<div><span>[${item.content.type}]</span>${item.content.placeholder || item.content.text}</div>`
+        }
+    }
+
+    async doSendFiles(event) {
+        if (!this.current) {
+            return
+        }
+        const topicId =  this.current.topicId
+        let file = event.target.files[0]
+        let result = await this.client.uploadFile({topicId, file , isPrivate: false})
+        if (file.type.startsWith('image/')) {
+            await this.client.doSendImage({topicId, urlOrData: result.path})
+        } else {
+            await this.client.doSendFile({topicId, urlOrData: result.path, filename: result.fileName, size: result.size})
         }
     }
 }

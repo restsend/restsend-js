@@ -270,9 +270,9 @@ export class Connection extends Callback {
 
     /**
      * Typing indicator, only for personal chat
-     * @param {Topic} topic
+     * @param {String} topicId
      */
-    async doTyping(topic) {
+    async doTyping(topicId) {
         let req = new ChatRequest()
         req.topicId = topic.id
         req.type = 'typing'
@@ -281,7 +281,7 @@ export class Connection extends Callback {
 
     /**
       * Chat message read
-      * @param {Topic} topic
+     * @param {String} topicId
       */
     async doRead({ topicId, lastSeq }) {
         let req = new ChatRequest()
@@ -293,13 +293,13 @@ export class Connection extends Callback {
 
     /**
      * Recall a message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} chatId
      */
-    async doRecall({ topic, chatId }) {
+    async doRecall({ topicId, chatId }) {
         let req = await this.sendAndWaitResponse({
             type: 'chat',
-            topicId: topic.id,
+            topicId,
             chatId,
             content: {
                 type: 'recall',
@@ -310,16 +310,16 @@ export class Connection extends Callback {
 
     /**
      * Send text message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} text
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendText({ topic, text, mentions, replyId }) {
+    async doSendText({ topicId, text, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'text',
                 text,
@@ -330,19 +330,21 @@ export class Connection extends Callback {
     }
     /**
      * Send image message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} urlOrData Image URL or base64 encoded image content
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
+     * @option @param {Number} size Image size
      */
-    async doSendImage({ topic, urlOrData, mentions, replyId }) {
+    async doSendImage({ topicId, urlOrData, size, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'image',
                 text: urlOrData,
+                size,
                 mentions,
                 replyId,
             },
@@ -350,17 +352,17 @@ export class Connection extends Callback {
     }
     /**
      * Send voice message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} urlOrData
      * @param {String} duration Voice duration, format is 00:00
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      * */
-    async doSendVoice({ topic, urlOrData, duration, mentions, replyId }) {
+    async doSendVoice({ topicId, urlOrData, duration, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'voice',
                 text: urlOrData,
@@ -372,18 +374,18 @@ export class Connection extends Callback {
     }
     /**
      * Send video message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} url Video URL
      * @param {String} thumbnail Video thumbnail
      * @param {String} duration Video duration, format is 00:00
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendVideo({ topic, urlOrData, thumbnail, duration, mentions, replyId }) {
+    async doSendVideo({topicId, urlOrData, thumbnail, duration, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'video',
                 text: urlOrData,
@@ -397,18 +399,18 @@ export class Connection extends Callback {
 
     /**
      * Send file message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} urlOrData File URL or base64 encoded file content
      * @param {String} filename File name
      * @param {Number} size File size
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      * */
-    async doSendFile({ topic, urlOrData, filename, size, mentions, replyId }) {
+    async doSendFile({ topicId, urlOrData, filename, size, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'file',
                 text: urlOrData,
@@ -422,18 +424,18 @@ export class Connection extends Callback {
 
     /**
      * Send location message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {Number} latitude Latitude
      * @param {Number} longitude Longitude
      * @param {String} address Address
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendLocation({ topic, latitude, longitude, address, mentions, replyId }) {
+    async doSendLocation({ topicId, latitude, longitude, address, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'file',
                 text: `${latitude},${longitude}`,
@@ -446,16 +448,16 @@ export class Connection extends Callback {
 
     /**
      * Send link message
-     * @param {Topic} topic
+     * @param {String} topicId
      * @param {String} url Link URL
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendLink({ topic, url, mentions, replyId }) {
+    async doSendLink({ topicId,  url, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
-            topicId: topic.id,
+            topicId,
             content: {
                 type: 'link',
                 text: url,

@@ -568,3 +568,27 @@ export class ConversationUpdateFields {
         this.remark = null
     }
 }
+export class UploadResult {
+    constructor() {
+        /**
+         * @type {Boolean} external is external file
+         */
+        this.external = false
+        /**
+         * @type {String} path, full url address
+         */
+        this.path = null
+        /**
+         * @type {String} fileName
+         */
+        this.fileName = null
+        /**
+         * @type {String} ext
+         */
+        this.ext = null
+        /**
+         * @type {int} size
+         */
+        this.size = 0
+    }
+}

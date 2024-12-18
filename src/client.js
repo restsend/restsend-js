@@ -1,7 +1,7 @@
 import ServiceApi from './services'
 import { Connection } from './connection'
 import { logger, formatDate } from './utils'
-import { ChatLog, Topic, User, Conversation } from './types'
+import { ChatLog, Topic, User, Conversation, UploadResult } from './types'
 import { ClientStore } from './store'
 
 export class Client extends Connection {
@@ -190,7 +190,7 @@ export class Client extends Connection {
     /**
      * Initiate a one-on-one chat request
      * @param {User} user
-     * @returns {Topic} conversation info, may be null if request fails
+     * @returns {Conversation} conversation info, may be null if request fails
      */
     async tryChatWithUser(user) {
         let topic = await this.services.chatWithUser(user.id)
@@ -202,7 +202,7 @@ export class Client extends Connection {
             conversation.name = user.displayName
         }
         this.onConversationUpdated(conversation)
-        return topic
+        return conversation
     }
 
     /**
@@ -490,7 +490,7 @@ export class Client extends Connection {
      * @param {file} file file object
      * @param {String} topicId whether the file is uploaded in a topic chat
      * @param {Boolean} isPrivate whether it is a private file
-     * @returns 
+     * @returns {UploadResult} upload result
      */
     async uploadFile({ file, topicId, isPrivate }) {
         return await this.services.uploadFile(file, topicId, isPrivate)

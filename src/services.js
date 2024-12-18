@@ -1,5 +1,5 @@
 import { BackendApi, handleResult } from './backend'
-import { User } from './types'
+import { User, UploadResult } from './types'
 
 export default class ServicesApi {
     constructor(endpoint) {
@@ -172,7 +172,13 @@ export default class ServicesApi {
         return await this.backend.post(`${this.endpoint}/api/relation/${userId}`, { 'chatAllowed': true })
     }
 
-    // Upload file
+    /**
+     * Upload file to server
+     * @param {File} file
+     * @param {String} topicId
+     * @param {Boolean} isPrivate
+     * @returns {UploadResult} 
+     */
     async uploadFile(file, topicId, isPrivate) {
         const formData = new FormData()
         formData.append('file', file)

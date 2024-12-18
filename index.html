@@ -15,9 +15,12 @@
             <h2 class="text-lg font-semibold">Accounts</h2>
         </div>
         <ul class="flex-1 overflow-y-auto">
-            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp('alice')">Alice</li>
-            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp('bob')">Bob</li>
-            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp()">Guest</li>
+            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp('alice')" 
+            :class="{ 'bg-gray-300': client && /alice/i.test(client.myId) }">Alice</li>
+            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp('bob')"
+            :class="{ 'bg-gray-300': client && /bob/i.test(client.myId) }">Bob</li>
+            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp()"
+            :class="{ 'bg-gray-300': client && /guest-demo/i.test(client.myId) }">Guest</li>
         </ul>
     </div>
     <div class="flex flex-col w-1/4 border-r  border-gray-300">
@@ -26,7 +29,8 @@
         </div>
         <ul class="flex-1 overflow-y-auto">
             <template x-for="item in conversations" :key="item.topicId">
-                <li class="p-4 border-b border-gray-300  hover:bg-gray-200 cursor-pointer flex justify-between" @click="chatWith(item)">
+                <li class="p-4 border-b border-gray-300  hover:bg-gray-200 cursor-pointer flex justify-between" @click="chatWith(item)"
+                :class="{ 'bg-gray-200': current && current.topicId === item.topicId }">
                     <div>
                         <div><span x-text="item.name"></div>
                         <div>

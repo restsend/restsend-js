@@ -4,7 +4,7 @@ import { LRUCache } from 'lru-cache'
 import { formatDate } from './utils'
 
 const MAX_RECALL_SECS = 60 * 2
-const MessageBucketSize = 100
+export const MessageBucketSize = 50
 class MessageStore {
     /**
      * @param {ServicesApi} services
@@ -299,7 +299,7 @@ export class ClientStore {
         if (prevConversation) {
             conversation.unread = prevConversation.unread
             conversation.lastReadSeq = prevConversation.lastReadSeq
-            conversation.lastReadAt = prevConversation.lastReadAt            
+            conversation.lastReadAt = prevConversation.last
         }
         switch (content?.type) {
             case 'topic.change.owner':

@@ -399,7 +399,7 @@ export class Conversation {
          *  */
         this.sticky = false
         /**
-         *  @type {Numbers} unread messages count
+         *  @type {Number} unread messages count
          * */
         this.unread = 0
         /**
@@ -415,6 +415,10 @@ export class Conversation {
         this.lastReadSeq = 0
         this.lastReadAt = null
 
+        /**
+         * @type {Number} the starting sequence number of the conversation
+         */
+        this.startSeq = 0
         this.updatedAt = null
         /**
          * @type {Boolean} is muted

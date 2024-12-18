@@ -26,6 +26,8 @@ class DemoApp {
         this.conversations = []
         /** @type {ChatLog[]} */
         this.messages = []
+        /** @type {Map<string, Number>} */
+        this.messageIds = {}
         /** @type {Conversation} */
         this.current = undefined
         this.textMessage = ''
@@ -146,8 +148,9 @@ class DemoApp {
      * */
     async chatWith(conversation) {
         this.messages = [] // clear chat logs
+        this.messageIds = {}
         this.current = conversation
-        this.client.setConversationRead({topicId: conversation.topicId})
+        this.client.setConversationRead(conversation.topicId)
         this.current.unread = 0
         await this.fetchLastLogs({topicId: conversation.topicId})
     }
@@ -156,31 +159,45 @@ class DemoApp {
         const {logs, hasMore} = await this.client.syncChatlogs({topicId, lastSeq, limit})
         if (logs) {
             logs.forEach((log) => {
-                const idx = this.messages.findIndex((m) => m.chatId === log.chatId)
-                if (idx >= 0) {
-                    this.messages = this.messages.splice(idx, 1)
-                } 
-                this.messages.push(log)
+                if (!log.chatId) {
+                    return
+                }
+                if (this.messageIds[log.chatId] === undefined) {                    
+                    this.messages.push(log)
+                    this.messageIds[log.chatId] = this.messages.length - 1
+                } else {
+                    let idx = this.messageIds[log.chatId]
+                    this.messages[idx].extra = log.extra
+                }      
             })
             this.messages.sort((a, b) => a.compareSort(b))
-        }        
+        }
         // scroll to bottom 
         // TODO: check the scroll position and only scroll to bottom if it is already at the bottom        
-        setTimeout(() => {
-            const chatlogs = document.getElementById('chatbox')
-            chatlogs.scrollTop = chatlogs.scrollHeight
-        }, 100)
+        const chatbox = document.getElementById('chatbox')
+        let scrollToEnd = chatbox.scrollTop + chatbox.clientHeight + 100 >= chatbox.scrollHeight
+        if (scrollToEnd) {
+            setTimeout(() => {
+                chatbox.scrollTop = chatbox.scrollHeight
+            }, 100)
+        }
     }
 
-    async syncMoreChatlogs() {
+    onScrollMessages(event) {
+        if (event.target.scrollTop > 0) {
+            return
+        }
         if (!this.current) {
             return
         }
-        const {logs, hasMore} = await this.client.syncChatlogs({topicId:this.current.topicId})
-        if (logs) {
-            this.messages.push(...logs)
-            this.messages.sort((a, b) => a.compareSort(b))
+        event.preventDefault()
+        let firstSeq = undefined
+        // sync older messages
+        if (this.messages && this.messages[0].seq > this.current.startSeq) {
+            firstSeq = this.messages[0].seq
         }
+        firstSeq = Math.max(firstSeq, this.current.startSeq)
+        this.fetchLastLogs({topicId: this.current.topicId, lastSeq: firstSeq}).then()
     }
 
     renderLog(item) {

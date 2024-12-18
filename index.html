@@ -41,7 +41,7 @@
         </ul>
     </div>
     <div class="flex flex-col w-3/4 border-r border-gray-300">
-        <div class="flex-1 p-4 overflow-y-auto" id="chatbox">
+        <div class="flex-1 p-4 overflow-y-auto" id="chatbox" @scrollend="onScrollMessages($event)">
             <template x-for="item in messages" :key="item.chatId">
                 <div>
                     <div class="mb-4" :class="{ 'text-right': item.isSentByMe }">

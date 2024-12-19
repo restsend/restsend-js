@@ -1,6 +1,5 @@
 import { User, Topic, ChatLog, TopicNotice, Conversation, ConversationUpdateFields, LogStatusSent, LogStatusSending, LogStatusReceived } from './types'
 import ServicesApi from './services'
-import { LRUCache } from 'lru-cache'
 import { formatDate } from './utils'
 
 const MAX_RECALL_SECS = 60 * 2
@@ -103,7 +102,7 @@ export class ClientStore {
      */
     constructor(services) {
         this.services = services
-        this.users = new LRUCache({ max: 20000 }) // Cache 20000 users
+        this.users = {}
         this.conversations = {}
         this.topics = {}
         this.topicMessages = {}

@@ -11,20 +11,37 @@ export async function handleResult(resp) {
     }
     return await resp.json()
 }
-
-export async function sendReq(method, url, data, token) {
+async function wxSendReq(method, url, data, token) { 
+    let header = token ? {'Authorization': `Bearer ${token}`} : undefined
+    return new Promise((resolve, reject)=> {
+            wx.request({
+            url,
+            method,
+            data,
+            header,
+            success: (res)=>resolve(res.data),
+            fail:reject
+            })
+    })
+}
+async function webSendReq(method, url, data, token) {
     const authToken = token ? `Bearer ${token}` : undefined
     const resp = await fetch(url, {
         method,
         credentials: 'same-origin',
         body: JSON.stringify(data),
-        headers: new Headers({
+        headers: {
             'Content-Type': 'application/json',
             'Authorization': authToken,
-        }),
+        },
     })
-
     return await handleResult(resp)
+}
+export async function sendReq(method, url, data, token) {
+    if (typeof wx !== 'undefined') {
+        return await wxSendReq(method, url, data, token)
+    }
+    return await webSendReq(method, url, data, token)
 }
 
 export class BackendApi {

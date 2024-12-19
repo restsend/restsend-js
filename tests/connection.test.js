@@ -45,7 +45,7 @@ describe('Connection states', function () {
             }
             return {code:200, hasRead:false}
         }
-        await guido.doSendText({ topic, text: 'hello from unittest' })
+        await guido.doSendText({ topicId:topic.topicId, text: 'hello from unittest' })
         expect(await waitUntil(() => {
             return received
         })).toBe(true)

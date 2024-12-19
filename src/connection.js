@@ -4,11 +4,16 @@
 import { ChatRequest } from './types'
 import { logger, randText } from './utils'
 import { Callback } from './callback'
+import { WrappedWxSocket } from './wrappedsocket'
 
 const CHAT_ID_LENGTH = 8
 const REQUEST_TIMEOUT = 120000 // 2 minutes
 const keepaliveInterval = 30 * 1000 // 30 seconds
 const reconnectInterval = 5 * 1000 // 5 seconds
+
+function openWxWebsocket(url) {
+    return new WrappedWxSocket(url)
+}
 
 export class Connection extends Callback {
     constructor(endpoint) {
@@ -54,6 +59,9 @@ export class Connection extends Callback {
         this.status = 'disconnected'
         this.waiting = []
         this.pending = []
+        if (typeof wx !== 'undefined') {
+            this.newWebSocket = openWxWebsocket
+        }
     }
 
     shutdown() {
@@ -111,7 +119,7 @@ export class Connection extends Callback {
 
         let url = `${endpoint}/api/connect?device=${this.device}`
         // check is same origin
-        if (endpoint.indexOf(`://${window.location}`) === -1) {
+        if (typeof wx !== 'undefined' || endpoint.indexOf(`://${window.location}`) === -1) {
             url = `${url}&token=${this.token}`
         }
 
@@ -120,7 +128,7 @@ export class Connection extends Callback {
         } else {
             this.ws = new WebSocket(url)
         }
-
+        
         this.ws.onopen = this._onOpen.bind(this)
         this.ws.onclose = this._onClose.bind(this)
         this.ws.onerror = this._onError.bind(this)
@@ -204,14 +212,14 @@ export class Connection extends Callback {
         this.onSystemMessage(req)
     }
 
-    async _onResponse(topicId, senderId, req) {
-        const w = this.waiting[req.chatId]
+    async _onResponse(topicId, senderId, resp) {
+        const w = this.waiting[resp.chatId]
         if (w) {
-            delete this.waiting[req.chatId]
-            await w.resolve(w.req)
+            delete this.waiting[resp.chatId]
+            await w.resolve(resp)
         }
         else {
-            logger.warn('no waiting for resp', req)
+            logger.warn('no waiting for resp', resp)
         }
     }
 

@@ -59,12 +59,16 @@ class MessageStore {
         if (idx === -1) {
             return
         }
-        let logs = this.messages.slice(idx, idx + limit)
+        let startIdx = idx - limit
+        if (startIdx < 0) {
+            return
+        }
+        let logs = this.messages.slice(startIdx, startIdx + limit)
         if (!logs || logs.length < limit) {
             return
         }
-        const startSeq = logs[0].seq
-        const endSeq = logs[logs.length - 1].seq
+        const startSeq = logs[logs.length - 1].seq
+        const endSeq = logs[0].seq
         const queryDiff = endSeq - startSeq
         if (queryDiff > limit) {
             return

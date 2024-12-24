@@ -71,9 +71,8 @@ export class Client extends Connection {
             logger.warn('bad topic id', topicId, senderId, req)
             return
         }
-
-        topic.unread = 0
         let conversation = await Conversation.fromTopic(topic).build(this)
+        conversation.unread = 0
         this.onConversationUpdated(conversation)
     }
 

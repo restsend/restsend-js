@@ -199,16 +199,6 @@ export class Topic {
         this.muted = false
         this.cachedAt = undefined
     }
-    /**
-     * @type {Number} unread messages count
-    */
-    get unread() {
-        let count = this.lastSeq - this.lastReadSeq
-        if (count < 0) {
-            count = 0
-        }
-        return count
-    }
 }
 
 export class TopicMember {

@@ -22,18 +22,18 @@ class MessageStore {
      * Get messages in reverse order, starting from seq and looking for limit messages
      * @param {Number} lastSeq
      * @returns {Promise<{ logs: ChatLog[], hasMore: Boolean }>}     * 
-     *  */ 
+     *  */
     async getMessages(lastSeq, limit) {
         let logs = this.getMessagesFromCache(lastSeq, limit)
         if (logs) {
-            return {logs}
+            return { logs }
         }
         const resp = await this.services.getChatLogsDesc(this.topicId, lastSeq, limit || this.bucketSize)
         let items = resp.items || []
         logs = []
-        
+
         for (let i = 0; i < items.length; i++) {
-            let log = Object.assign(new ChatLog(), items[i])            
+            let log = Object.assign(new ChatLog(), items[i])
             log.chatId = log.id
             log.id = undefined
             Object.defineProperty(log, 'sender', {
@@ -50,7 +50,7 @@ class MessageStore {
         return { logs, hasMore: resp.hasMore }
     }
 
-    getMessagesFromCache(lastSeq, limit=100) {
+    getMessagesFromCache(lastSeq, limit = 100) {
         if (this.messages.length <= 0) {
             return
         }
@@ -59,12 +59,8 @@ class MessageStore {
         if (idx === -1) {
             return
         }
-        let startIdx = idx - limit
-        if (startIdx < 0) {
-            return
-        }
-        let logs = this.messages.slice(startIdx, startIdx + limit)
-        if (!logs || logs.length < limit) {
+        let logs = this.messages.slice(idx, idx + limit)
+        if (!logs || logs.length < limit || logs.length == 0) {
             return
         }
         const startSeq = logs[logs.length - 1].seq
@@ -193,7 +189,7 @@ export class ClientStore {
      */
     async buildConversation(topicId, conversation) {
         conversation = Object.assign(new Conversation(), await this.services.getConversation(topicId))
-        conversation.isOwner = conversation.ownerId === this.services.myId        
+        conversation.isOwner = conversation.ownerId === this.services.myId
         Object.defineProperty(conversation, 'owner', {
             get: async () => {
                 return await this.getUser(conversation.ownerId)
@@ -334,7 +330,7 @@ export class ClientStore {
                 }
                 break
         }
-        
+
         if (logItem.seq >= conversation.lastReadSeq && logItem.readable && logItem.chatId) {
             conversation.unread += 1
         }

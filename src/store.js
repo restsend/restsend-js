@@ -54,12 +54,15 @@ class MessageStore {
         if (this.messages.length <= 0) {
             return
         }
-
         let idx = this.messages.findIndex(m => m.seq == lastSeq)
         if (idx === -1) {
             return
         }
-        let logs = this.messages.slice(idx, idx + limit)
+        let startIdx = idx - limit + 1
+        if (startIdx < 0) {
+            return
+        }
+        let logs = this.messages.slice(startIdx, startIdx + limit)
         if (!logs || logs.length < limit || logs.length == 0) {
             return
         }
@@ -71,7 +74,10 @@ class MessageStore {
         }
         return logs
     }
-
+    /**
+     * Update messages
+     * @param {ChatLog[]} items
+     * */
     updateMessages(items) {
         for (let i = 0; i < items.length; i++) {
             let log = items[i]

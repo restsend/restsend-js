@@ -141,7 +141,6 @@ class DemoApp {
     }
 
     onTyping(topicId, senderId) {
-        console.log('typing', topicId, this.current.topicId)
         if (this.current && this.current.topicId === topicId) {
             let conversation = this.current
             conversation.typing = true

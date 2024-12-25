@@ -19,12 +19,7 @@ export class Client extends Connection {
     }
 
     async _onTyping(topicId, senderId, req) {
-        let topic = await this.getTopic(topicId)
-        if (!topic) {
-            // bad topic id
-            return
-        }
-        this.onTyping(topic, senderId)
+        this.onTyping(topicId, senderId)
     }
 
     async _onChat(topicId, senderId, req) {
@@ -132,7 +127,7 @@ export class Client extends Connection {
             for (let idx = 0; idx < items.length; idx++) {
                 let conversation = await Object.assign(new Conversation(), items[idx]).build(this);
                 this.store.updateConversation(conversation)
-                this.onConversationUpdated(conversation) 
+                this.onConversationUpdated(conversation)
             }
             count += items.length
             syncAt = updatedAt
@@ -152,7 +147,7 @@ export class Client extends Connection {
      * @param {Number} limit
      * @returns {Object} { logs, hasMore }
      * */
-    async syncChatlogs({topicId, lastSeq, limit}) {
+    async syncChatlogs({ topicId, lastSeq, limit }) {
         let conversation = await this.getConversation(topicId)
         if (!conversation) {
             throw new Error('conversation not found')

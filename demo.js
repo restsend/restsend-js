@@ -1,5 +1,5 @@
 import { Client } from './src/client.js'
-import { Conversation,ChatLog } from './src/types.js'
+import { Conversation, ChatLog } from './src/types.js'
 import { createRsClient } from './src/main.js'
 import Alpine from 'alpinejs'
 
@@ -31,6 +31,7 @@ class DemoApp {
         /** @type {Conversation} */
         this.current = undefined
         this.textMessage = ''
+        this.lastTyping = 0
     }
 
     init() {
@@ -82,19 +83,21 @@ class DemoApp {
     * @param {Client} client 
     */
     buildClient(client) {
+        this.lastTyping = 0
         this.client = client
         client.onConnected = this.onConnected.bind(this)
         client.onDisconnected = this.onDisconnected.bind(this)
         client.onConversationUpdated = this.onConversationUpdated.bind(this)
         client.onConversationRemoved = this.onConversationRemoved.bind(this)
         client.onTopicMessage = this.onTopicMessage.bind(this)
+        client.onTyping = this.onTyping.bind(this)
     }
     onConnected() {
         this.logit('connected', this.client.myId)
         this.client.beginSyncConversations()
     }
     onDisconnected() {
-       this.logit('disconnected', client.myId)
+        this.logit('disconnected', client.myId)
     }
 
     onConversationUpdated(conversation) {
@@ -106,12 +109,12 @@ class DemoApp {
             this.conversations.push(conversation)
         }
         this.conversations.sort((a, b) => a.compareSort(b))
-        if (this.current && conversation.topicId === this.current.topicId) {            
+        if (this.current && conversation.topicId === this.current.topicId) {
             const lastSeq = this.current.lastSeq
             const newLastSeq = Math.max(conversation.lastSeq, lastSeq)
             const limit = newLastSeq - lastSeq
             this.current = conversation
-            this.fetchLastLogs({topicId: conversation.topicId, lastSeq:newLastSeq, limit}).then()
+            this.fetchLastLogs({ topicId: conversation.topicId, lastSeq: newLastSeq, limit }).then()
         }
     }
     onConversationRemoved(topicId) {
@@ -125,12 +128,39 @@ class DemoApp {
             this.messages = []
         }
     }
-
+    /**
+     * @param {Topic} topic
+     * @param {ChatLog} message
+     */
     onTopicMessage(topic, message) {
         let hasRead = this.current && this.current.topicId === topic.id
-        return {code:200, hasRead}
+        if (hasRead && message.readable) {
+            this.current.typing = false
+        }
+        return { code: 200, hasRead }
     }
 
+    onTyping(topicId, senderId) {
+        console.log('typing', topicId, this.current.topicId)
+        if (this.current && this.current.topicId === topicId) {
+            let conversation = this.current
+            conversation.typing = true
+            setTimeout(() => {
+                conversation.typing = false
+            }, 5000)
+        }
+    }
+    doTyping(e) {
+        if (!this.current || !this.client || e.target.value.length < 1) {
+            return
+        }
+        let now = new Date().getTime()
+        if (now - this.lastTyping < 5000) {
+            return
+        }
+        this.lastTyping = now
+        this.client.doTyping(this.current.topicId)
+    }
     async sendMessage() {
         const text = this.textMessage
         if (!text) {
@@ -140,8 +170,9 @@ class DemoApp {
             this.logit('no current conversation')
             return
         }
-        await this.client.doSendText({topicId:this.current.topicId, text})
+        await this.client.doSendText({ topicId: this.current.topicId, text })
         this.textMessage = ''
+        this.lastTyping = 0
     }
     /**
      * @param {Conversation} conversation
@@ -149,26 +180,27 @@ class DemoApp {
     async chatWith(conversation) {
         this.messages = [] // clear chat logs
         this.messageIds = {}
+        this.lastTyping = 0
         this.current = conversation
         this.client.setConversationRead(conversation.topicId)
         this.current.unread = 0
-        await this.fetchLastLogs({topicId: conversation.topicId})
+        await this.fetchLastLogs({ topicId: conversation.topicId })
     }
-    
-    async fetchLastLogs({topicId, lastSeq, limit}) {
-        const {logs, hasMore} = await this.client.syncChatlogs({topicId, lastSeq, limit})
+
+    async fetchLastLogs({ topicId, lastSeq, limit }) {
+        const { logs, hasMore } = await this.client.syncChatlogs({ topicId, lastSeq, limit })
         if (logs) {
             logs.forEach((log) => {
                 if (!log.chatId) {
                     return
                 }
-                if (this.messageIds[log.chatId] === undefined) {                    
+                if (this.messageIds[log.chatId] === undefined) {
                     this.messages.push(log)
                     this.messageIds[log.chatId] = this.messages.length - 1
                 } else {
                     let idx = this.messageIds[log.chatId]
                     this.messages[idx].extra = log.extra
-                }      
+                }
             })
             this.messages.sort((a, b) => a.compareSort(b))
         }
@@ -197,7 +229,7 @@ class DemoApp {
             firstSeq = this.messages[0].seq
         }
         firstSeq = Math.max(firstSeq, this.current.startSeq)
-        await this.fetchLastLogs({topicId: this.current.topicId, lastSeq: firstSeq})
+        await this.fetchLastLogs({ topicId: this.current.topicId, lastSeq: firstSeq })
     }
 
     renderLog(item) {
@@ -220,13 +252,13 @@ class DemoApp {
         if (!this.current) {
             return
         }
-        const topicId =  this.current.topicId
+        const topicId = this.current.topicId
         let file = event.target.files[0]
-        let result = await this.client.uploadFile({topicId, file , isPrivate: false})
+        let result = await this.client.uploadFile({ topicId, file, isPrivate: false })
         if (file.type.startsWith('image/')) {
-            await this.client.doSendImage({topicId, urlOrData: result.path})
+            await this.client.doSendImage({ topicId, urlOrData: result.path })
         } else {
-            await this.client.doSendFile({topicId, urlOrData: result.path, filename: result.fileName, size: result.size})
+            await this.client.doSendFile({ topicId, urlOrData: result.path, filename: result.fileName, size: result.size })
         }
     }
 }

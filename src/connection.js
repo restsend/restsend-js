@@ -128,7 +128,7 @@ export class Connection extends Callback {
         } else {
             this.ws = new WebSocket(url)
         }
-        
+
         this.ws.onopen = this._onOpen.bind(this)
         this.ws.onclose = this._onClose.bind(this)
         this.ws.onerror = this._onError.bind(this)
@@ -282,7 +282,7 @@ export class Connection extends Callback {
      */
     async doTyping(topicId) {
         let req = new ChatRequest()
-        req.topicId = topic.id
+        req.topicId = topicId
         req.type = 'typing'
         return await this.doSendRequest(req, false)
     }
@@ -389,7 +389,7 @@ export class Connection extends Callback {
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendVideo({topicId, urlOrData, thumbnail, duration, mentions, replyId }) {
+    async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -461,7 +461,7 @@ export class Connection extends Callback {
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} replyId Reply message id
      */
-    async doSendLink({ topicId,  url, mentions, replyId }) {
+    async doSendLink({ topicId, url, mentions, replyId }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),

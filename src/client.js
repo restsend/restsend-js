@@ -407,14 +407,10 @@ export class Client extends Connection {
      * @param {String} chatId
      * @param {Boolean} sync whether to sync to the server, invalid for topic chat
      */
-    removeMessage({ topicId, chatId, sync }) { }
-    /**
-     * Delete multiple messages, whether to sync to the server
-     * @param {String} topicId
-     * @param {Array<String>} chatId multiple message ids
-     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
-     */
-    removeMessages({ topicId, chatId, sync }) { }
+    deleteMessage({ topicId, chatId, sync }) {
+        this.store.getMessageStore(topicId).deleteMessage(chatId)
+        return this.services.deleteMessage(topicId, chatId)
+    }
 
     /**
      * Get detailed information of a user, return undefined if user does not exist

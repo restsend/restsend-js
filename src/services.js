@@ -7,7 +7,10 @@ export default class ServicesApi {
         this.authToken = undefined
         this.endpoint = endpoint || ''
     }
-
+    /**
+     * Get backend api
+     * @returns {BackendApi}
+     * */
     get backend() {
         return new BackendApi(this.authToken)
     }
@@ -196,5 +199,16 @@ export default class ServicesApi {
         })
 
         return await handleResult(resp)
+    }
+    /**
+     * Delete message in chat
+     * @param {String} topicId
+     * @param {String} chatId
+     */
+    async deleteMessage(topicId, chatId) {
+        let body = {
+            ids: [chatId]
+        }
+        return await this.backend.post(`${this.endpoint}/api/chat/remove_messages/${topicId}`, body)
     }
 }

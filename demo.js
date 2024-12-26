@@ -31,6 +31,8 @@ class DemoApp {
         /** @type {Conversation} */
         this.current = undefined
         this.textMessage = ''
+        /** @type {ChatLog} */
+        this.quoteMessage = undefined
         this.lastTyping = 0
     }
 
@@ -85,6 +87,7 @@ class DemoApp {
     buildClient(client) {
         this.lastTyping = 0
         this.client = client
+        this.quoteMessage = undefined
         client.onConnected = this.onConnected.bind(this)
         client.onDisconnected = this.onDisconnected.bind(this)
         client.onConversationUpdated = this.onConversationUpdated.bind(this)
@@ -169,9 +172,17 @@ class DemoApp {
             this.logit('no current conversation')
             return
         }
-        await this.client.doSendText({ topicId: this.current.topicId, text })
+
+        let reply = undefined
+        if (this.quoteMessage) {
+            reply = this.quoteMessage.chatId
+        }
+
+        await this.client.doSendText({ topicId: this.current.topicId, text, reply })
+
         this.textMessage = ''
         this.lastTyping = 0
+        this.quoteMessage = undefined
     }
     /**
      * @param {Conversation} conversation
@@ -181,6 +192,7 @@ class DemoApp {
         this.messageIds = {}
         this.lastTyping = 0
         this.current = conversation
+        this.quoteMessage = undefined
         this.client.setConversationRead(conversation.topicId)
         this.current.unread = 0
         await this.fetchLastLogs({ topicId: conversation.topicId })
@@ -230,21 +242,39 @@ class DemoApp {
         firstSeq = Math.max(firstSeq, this.current.startSeq)
         await this.fetchLastLogs({ topicId: this.current.topicId, lastSeq: firstSeq })
     }
-
+    /**
+     * @param {ChatLog} item
+     */
     renderLog(item) {
-        switch (item.content.type) {
+        let content = item.content ? item.content : item
+        let output = ''
+        switch (content.type) {
             case 'text':
-                return `<div>${item.content.text}</div>`
+                output = `<div>${content.text}</div>`
+                break
             case 'logs':
-                return `<div><a href="${item.content.text}" target="_blank"</a>${item.content.placeholder} size(${item.content.size})</div>`
+                output = `<div><a href="${content.text}" target="_blank"</a>${content.placeholder} size(${content.size})</div>`
+                break
             case 'image':
-                return `<div><img class="w-32 h-32" src="${item.content.text}"></div>`
+                output = `<div><img class="w-32 h-32" src="${content.text}"></div>`
+                break
             case 'file':
-                const filename = item.content.placeholder || item.content.text.split('/').pop()
-                return `<div><a href="${item.content.text}" target="_blank">${filename} size(${item.content.size})</a></div>`
+                const filename = content.placeholder || content.text.split('/').pop()
+                output = `<div><a href="${content.text}" target="_blank">${filename} size(${content.size})</a></div>`
+                break
+            case 'recall':
+                item.content.type = ''
+                return
+            case 'recalled':
+                return `<div><span class="text-gray-400">[Recalled]</span></div>`
             default:
-                return `<div><span>[${item.content.type}]</span>${item.content.placeholder || item.content.text}</div>`
+                output = `<div><span>[${content.type}]</span>${content.placeholder || content.text}</div>`
+                break
         }
+        if (content.reply) {
+            output = `<div class="bg-gray-50 p-2 rounded-lg">${this.renderLog(JSON.parse(content.replyContent))}</div>` + output
+        }
+        return output
     }
 
     async doSendFiles(event) {
@@ -258,6 +288,59 @@ class DemoApp {
             await this.client.doSendImage({ topicId, urlOrData: result.path })
         } else {
             await this.client.doSendFile({ topicId, urlOrData: result.path, filename: result.fileName, size: result.size })
+        }
+    }
+    /**
+     * 
+     * @param {ChatLog} item 
+     */
+    async doRecallMessage(item) {
+        if (item.content.type === 'recall') {
+            return
+        }
+        let resp = await this.client.doRecall({ topicId: this.current.topicId, chatId: item.chatId })
+        if (resp.code === 200) {
+            item.content.type = 'recalled'
+            // update the message
+            let elm = document.getElementById('chat-item-' + item.chatId)
+            if (elm) {
+                elm.innerHTML = this.renderLog(item)
+            }
+        }
+    }
+    /**
+     * 
+     * @param {ChatLog} item 
+     */
+    async doDeleteMessage(item) {
+        item.content.type = ''
+        await this.client.deleteMessage({ topicId: this.current.topicId, chatId: item.chatId })
+    }
+    /**
+     * 
+     * @param {ChatLog} item 
+     */
+    async doQuoteMessage(item) {
+        this.quoteMessage = item
+    }
+
+    renderQuote() {
+        if (!this.quoteMessage) {
+            return ''
+        }
+        let content = this.quoteMessage.content
+        switch (content.type) {
+            case 'text':
+                return content.text
+            case 'logs':
+                return `${content.placeholder} size(${content.size})`
+            case 'image':
+                return `[image]`
+            case 'file':
+                const filename = content.placeholder || content.text.split('/').pop()
+                return `${filename} size(${content.size})`
+            default:
+                return `[${content.type}] ${content.placeholder || content.text}`
         }
     }
 }

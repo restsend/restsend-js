@@ -93,6 +93,12 @@ class MessageStore {
     clearMessages() {
         this.messages = []
     }
+    deleteMessage(chatId) {
+        let idx = this.messages.findIndex(m => m.chatId == chatId)
+        if (idx !== -1) {
+            this.messages.splice(idx, 1)
+        }
+    }
     /**
      * Get message by chat id
      * @param {String} chatId

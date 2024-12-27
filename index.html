@@ -51,7 +51,7 @@
     <div class="flex flex-col w-3/4 border-r border-gray-300">
         <div class="flex-1 p-4 overflow-y-auto" id="chatbox" @scrollend="onScrollMessages($event)">
             <template x-for="item in messages" :key="item.chatId">
-                <div class="mb-4 group/item" :class="{ 'text-right': item.isSentByMe }" x-show="item.content.type">
+                <div class="mb-4 group/item" :class="{ 'text-right': item.isSentByMe }" x-show="item.readable">
                     <div class="bg-blue-100 p-2 rounded-lg inline-block"
                         :class="{ 'bg-green-100': item.isSentByMe, 'bg-blue-100': !item.isSentByMe }"
                         :id="'chat-item-'+item.chatId" x-html="renderLog(item)"></div>

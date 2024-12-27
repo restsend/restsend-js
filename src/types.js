@@ -320,7 +320,7 @@ export class ChatLog {
      * @type {Boolean} is unreadable
      * */
     get readable() {
-        return this.content.unreadable !== true
+        return this.content.unreadable !== true && this.content.type
     }
     compareSort(other) {
         if (this.seq === other.seq) {
@@ -437,8 +437,8 @@ export class Conversation {
         const lhsDate = formatDate(this.lastMessageAt || this.updatedAt)
         const rhsDate = formatDate(other.lastMessageAt || other.updatedAt)
         //const diff = this.sticky - other.sticky
-       // if (diff === 0) {
-            return rhsDate - lhsDate
+        // if (diff === 0) {
+        return rhsDate - lhsDate
         //}
         //return diff
     }

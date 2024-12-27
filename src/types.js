@@ -320,7 +320,9 @@ export class ChatLog {
      * @type {Boolean} is unreadable
      * */
     get readable() {
-        return this.content.unreadable !== true && this.content.type
+        return this.content.unreadable !== true &&
+            this.content.type !== '' && // type is empty, means it's deleted
+            this.content.type !== 'recall' // recall is not readable
     }
     compareSort(other) {
         if (this.seq === other.seq) {

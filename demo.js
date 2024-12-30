@@ -193,7 +193,7 @@ class DemoApp {
         this.lastTyping = 0
         this.current = conversation
         this.quoteMessage = undefined
-        this.client.setConversationRead(conversation.topicId)
+        await this.client.setConversationRead(conversation)
         this.current.unread = 0
         await this.fetchLastLogs({ topicId: conversation.topicId })
     }
@@ -272,7 +272,7 @@ class DemoApp {
                 break
         }
         if (content.reply) {
-            output = `<div class="bg-gray-50 p-2 rounded-lg">${this.renderLog(JSON.parse(content.replyContent))}</div>` + output
+            output = `<div class="bg-gray-50 p-2 rounded-lg">${this.renderLog(JSON.parse(content.replyContent || '{}'))}</div>` + output
         }
         return output
     }

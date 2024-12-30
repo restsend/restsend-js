@@ -125,6 +125,11 @@ export class Client extends Connection {
                 return
             }
             for (let idx = 0; idx < items.length; idx++) {
+                let unread = items[idx].lastSeq - items[idx].lastReadSeq
+                if (unread < 0) {
+                    unread = 0
+                }
+                items[idx].unread = unread
                 let conversation = await Object.assign(new Conversation(), items[idx]).build(this);
                 this.store.updateConversation(conversation)
                 this.onConversationUpdated(conversation)
@@ -192,6 +197,9 @@ export class Client extends Connection {
             return
         }
         let conversation = await Conversation.fromTopic(topic).build(this)
+        if (conversation.unread > 0) {
+            this.doRead(conversation.topicId).then()
+        }
         if (!conversation.name && !conversation.multiple) {
             conversation.name = user.displayName
         }
@@ -219,17 +227,13 @@ export class Client extends Connection {
     async setConversationSticky(topicId) { }
     /**
      * Mark a conversation as read
-     * @param {String} topicId
+     * @param {Conversation} conversation
      * @throws {Exception} if the conversation does not exist
      */
-    setConversationRead(topicId) {
-        let conversation = this.store.getConversation(topicId)
-        if (!conversation) {
-            throw new Error('conversation not found')
-        }
+    async setConversationRead(conversation) {
         if (conversation.unread > 0) {
             conversation.unread = 0
-            this.doRead(topicId).then()
+            await this.doRead({ topicId: conversation.topicId })
         }
     }
 

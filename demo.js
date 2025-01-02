@@ -246,6 +246,7 @@ class DemoApp {
      * @param {ChatLog} item
      */
     renderLog(item) {
+        // console.log('renderLog', item)
         let content = item.content ? item.content : item
         let output = ''
         switch (content.type) {
@@ -253,10 +254,15 @@ class DemoApp {
                 output = `<div>${content.text}</div>`
                 break
             case 'logs':
-                output = `<div><a href="${content.text}" target="_blank"</a>${content.placeholder} size(${content.size})</div>`
+                output = `<div class="border border-gray-400 rounded-md bg-gray-100 p-3">
+                    <a href="${content.text}" target="_blank">
+                       <p>${content.placeholder}</p>
+                       <p class="mt-1">size:<span class="mx-1">(${content.size})</span>Bytes</p>
+                    </a>
+                </div>`
                 break
             case 'image':
-                output = `<div><img class="w-32 h-32" src="${content.text}"></div>`
+                output = `<div><img class="max-w-40 max-h-40" src="${content.text}"></div>`
                 break
             case 'file':
                 const filename = content.placeholder || content.text.split('/').pop()
@@ -272,7 +278,7 @@ class DemoApp {
                 break
         }
         if (content.reply) {
-            output = `<div class="bg-gray-50 p-2 rounded-lg">${this.renderLog(JSON.parse(content.replyContent || '{}'))}</div>` + output
+            output = `<div class="bg-gray-50 text-gray-600 text-sm px-2 py-1 rounded-sm mb-1">${this.renderLog(JSON.parse(content.replyContent || '{}'))}</div>` + output
         }
         return output
     }
@@ -324,24 +330,57 @@ class DemoApp {
         this.quoteMessage = item
     }
 
+    // renderQuote() {
+    //     if (!this.quoteMessage) {
+    //         return ''
+    //     }
+    //     let content = this.quoteMessage.content
+    //     switch (content.type) {
+    //         case 'text':
+    //             return `${content.text}`
+    //         case 'logs':
+    //             return `${content.placeholder} size(${content.size})`
+    //         case 'image':
+    //             return `<img :src="${content.thumbnail}" class="max-w-20 max-h-20"/>`
+    //             // return `[image]`
+    //         case 'file':
+    //             const filename = content.placeholder || content.text.split('/').pop()
+    //             return `${filename} size(${content.size})`
+    //         default:
+    //             return `[${content.type}] ${content.placeholder || content.text}`
+    //     }
+    // }
+
     renderQuote() {
         if (!this.quoteMessage) {
-            return ''
+            return null;
         }
-        let content = this.quoteMessage.content
+        let content = this.quoteMessage.content;
+        let container = document.createElement('div');
+
         switch (content.type) {
             case 'text':
-                return content.text
+                container.textContent = content.text;
+                break;
             case 'logs':
-                return `${content.placeholder} size(${content.size})`
+                container.textContent = `${content.placeholder} size(${content.size})`;
+                break;
             case 'image':
-                return `[image]`
+                let img = document.createElement('img');
+                img.src = content.thumbnail;
+                img.className = 'max-w-20 max-h-20';
+                container.appendChild(img);
+                break;
             case 'file':
-                const filename = content.placeholder || content.text.split('/').pop()
-                return `${filename} size(${content.size})`
+                const filename = content.placeholder || content.text.split('/').pop();
+                container.textContent = `${filename} size(${content.size})`;
+                break;
             default:
-                return `[${content.type}] ${content.placeholder || content.text}`
+                container.textContent = `[${content.type}] ${content.placeholder || content.text}`;
+                break;
         }
+
+        return container.outerHTML;
     }
 }
 

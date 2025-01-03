@@ -245,42 +245,49 @@ class DemoApp {
     /**
      * @param {ChatLog} item
      */
+
     renderLog(item) {
-        // console.log('renderLog', item)
-        let content = item.content ? item.content : item
-        let output = ''
+        let content = item.content ? item.content : item;
+        let output = '';
         switch (content.type) {
             case 'text':
-                output = `<div>${content.text}</div>`
-                break
+                output = `<div>${content.text}</div>`;
+                break;
             case 'logs':
                 output = `<div class="border border-gray-400 rounded-md bg-gray-100 p-3">
-                    <a href="${content.text}" target="_blank">
-                       <p>${content.placeholder}</p>
-                       <p class="mt-1">size:<span class="mx-1">(${content.size})</span>Bytes</p>
-                    </a>
-                </div>`
-                break
+                        <a href="${content.text}" target="_blank">
+                           <p>${content.placeholder}</p>
+                           <p class="mt-1">size:<span class="mx-1">(${content.size})</span>Bytes</p>
+                        </a>
+                    </div>`;
+                break;
             case 'image':
-                output = `<div><img class="max-w-40 max-h-40" src="${content.text}"></div>`
-                break
+                output = `<div><img class="max-w-40 max-h-40" src="${content.text}"></div>`;
+                break;
             case 'file':
-                const filename = content.placeholder || content.text.split('/').pop()
-                output = `<div><a href="${content.text}" target="_blank">${filename} size(${content.size})</a></div>`
-                break
+                const filename = content.placeholder || content.text.split('/').pop();
+                output = `<div><a href="${content.text}" target="_blank">${filename} size(${content.size})</a></div>`;
+                break;
             case 'recall':
-                item.content.type = ''
-                return
+                item.content.type = '';
+                return;
             case 'recalled':
-                return `<div><span class="text-gray-400">[Recalled]</span></div>`
+                return `<div><span class="text-gray-400">[Recalled]</span></div>`;
             default:
-                output = `<div><span>[${content.type}]</span>${content.placeholder || content.text}</div>`
-                break
+                output = `<div><span>[${content.type}]</span>${content.placeholder || content.text}</div>`;
+                break;
         }
+
         if (content.reply) {
-            output = `<div class="bg-gray-50 text-gray-600 text-sm px-2 py-1 rounded-sm mb-1">${this.renderLog(JSON.parse(content.replyContent || '{}'))}</div>` + output
+            if (content.replyContent) {
+                const replyOutput = this.renderLog(JSON.parse(content.replyContent))
+                output = `<div class="bg-gray-50 text-gray-600 text-sm px-2 py-1 rounded-sm mb-1">${replyOutput}</div>` + output;
+            }
+            else if (!content.replyContent && !content.senderId) {
+                output = `<div class="bg-gray-50 text-gray-600 text-sm px-2 py-1 rounded-sm mb-1">[Recalled]</div>` + output;
+            }
         }
-        return output
+        return output;
     }
 
     async doSendFiles(event) {

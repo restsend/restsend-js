@@ -490,4 +490,28 @@ export class Connection extends Callback {
             },
         }, onsent)
     }
+    /**
+    * Send message
+    * @param {String} type
+    * @param {String} topicId
+    * @param {String} text Message content
+    * @option @param {String} placeholder Placeholder text
+    * @option @param {Array<String>} mentions Mentioned people
+    * @option @param {String} reply Reply message id
+    * @param {Function} onsent Callback function after the message is sent
+    */
+    async doSendMessage({ type, topicId, text, placeholder, mentions, reply, onsent }) {
+        return await this.sendAndWaitResponse({
+            type: 'chat',
+            chatId: randText(CHAT_ID_LENGTH),
+            topicId,
+            content: {
+                type,
+                text,
+                mentions,
+                reply,
+                placeholder,
+            },
+        }, onsent)
+    }
 }

@@ -177,8 +177,10 @@ class DemoApp {
         if (this.quoteMessage) {
             reply = this.quoteMessage.chatId
         }
-
-        await this.client.doSendText({ topicId: this.current.topicId, text, reply })
+        let onsent = (req) => {
+            this.logit('message sent', req)
+        }
+        await this.client.doSendText({ topicId: this.current.topicId, text, reply, onsent })
 
         this.textMessage = ''
         this.lastTyping = 0

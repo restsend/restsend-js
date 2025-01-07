@@ -256,7 +256,7 @@ export class Connection extends Callback {
         return req
     }
 
-    async sendAndWaitResponse(req, retry = true) {
+    async sendAndWaitResponse(req, onsent, retry = true) {
         req = Object.assign(new ChatRequest(), req)
         return new Promise((resolve, reject) => {
             this.waiting[req.chatId] = {
@@ -264,7 +264,9 @@ export class Connection extends Callback {
                 resolve,
                 reject,
             }
-
+            if (onsent) {
+                onsent(req)
+            }
             this.doSendRequest(req, retry).then(() => { })
 
             setTimeout(() => {
@@ -302,8 +304,9 @@ export class Connection extends Callback {
      * Recall a message
      * @param {String} topicId
      * @param {String} chatId
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doRecall({ topicId, chatId }) {
+    async doRecall({ topicId, chatId, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             topicId,
@@ -312,7 +315,7 @@ export class Connection extends Callback {
                 type: 'recall',
                 text: chatId,
             }
-        })
+        }, onsent)
     }
 
     /**
@@ -321,8 +324,9 @@ export class Connection extends Callback {
      * @param {String} text
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendText({ topicId, text, mentions, reply }) {
+    async doSendText({ topicId, text, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -333,7 +337,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
     /**
      * Send image message
@@ -342,8 +346,9 @@ export class Connection extends Callback {
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
      * @option @param {Number} size Image size
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendImage({ topicId, urlOrData, size, mentions, reply }) {
+    async doSendImage({ topicId, urlOrData, size, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -355,7 +360,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
     /**
      * Send voice message
@@ -364,8 +369,9 @@ export class Connection extends Callback {
      * @param {String} duration Voice duration, format is 00:00
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      * */
-    async doSendVoice({ topicId, urlOrData, duration, mentions, reply }) {
+    async doSendVoice({ topicId, urlOrData, duration, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -377,7 +383,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
     /**
      * Send video message
@@ -387,8 +393,9 @@ export class Connection extends Callback {
      * @param {String} duration Video duration, format is 00:00
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, reply }) {
+    async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -401,7 +408,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
 
     /**
@@ -412,8 +419,9 @@ export class Connection extends Callback {
      * @param {Number} size File size
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      * */
-    async doSendFile({ topicId, urlOrData, filename, size, mentions, reply }) {
+    async doSendFile({ topicId, urlOrData, filename, size, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -426,7 +434,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
 
     /**
@@ -437,8 +445,9 @@ export class Connection extends Callback {
      * @param {String} address Address
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendLocation({ topicId, latitude, longitude, address, mentions, reply }) {
+    async doSendLocation({ topicId, latitude, longitude, address, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -450,7 +459,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
 
     /**
@@ -459,8 +468,9 @@ export class Connection extends Callback {
      * @param {String} url Link URL
      * @option @param {Array<String>} mentions Mentioned people
      * @option @param {String} reply Reply message id
+     * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendLink({ topicId, url, mentions, reply }) {
+    async doSendLink({ topicId, url, mentions, reply, onsent }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -471,6 +481,6 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        })
+        }, onsent)
     }
 }

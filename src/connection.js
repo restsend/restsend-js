@@ -7,7 +7,7 @@ import { Callback } from './callback'
 import { WrappedWxSocket } from './wrappedsocket'
 
 const CHAT_ID_LENGTH = 8
-const REQUEST_TIMEOUT = 120000 // 2 minutes
+const REQUEST_TIMEOUT = 15 // 15 seconds
 const keepaliveInterval = 30 * 1000 // 30 seconds
 const reconnectInterval = 5 * 1000 // 5 seconds
 
@@ -267,11 +267,18 @@ export class Connection extends Callback {
             if (onsent) {
                 onsent(req)
             }
-            this.doSendRequest(req, retry).then(() => { })
+            this.doSendRequest(req, retry).then(() => { }).catch((e) => {
+                let w = this.waiting[req.chatId]
+                if (w) {
+                    w.reject(e)
+                    delete this.waiting[req.chatId]
+                }
+            })
 
             setTimeout(() => {
-                if (this.waiting[req.chatId]) {
-                    this.waiting[req.chatId].reject(new Error('timeout'))
+                let w = this.waiting[req.chatId]
+                if (w) {
+                    w.reject(new Error('timeout'))
                     delete this.waiting[req.chatId]
                 }
             }, REQUEST_TIMEOUT * 1000)

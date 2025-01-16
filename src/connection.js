@@ -514,4 +514,22 @@ export class Connection extends Callback {
             },
         }, onsent)
     }
+    /// Update sent chat message's extra
+    /// # Arguments
+    /// * @param {String} topicId The topic id
+    /// * @param {String} chatId The chat id
+    /// * @param {Object} extra The extra, optional
+    /// * @param {Function} onsent Callback function after the message is sent
+    async doUpdateExtra({ topicId, chatId, extra, onsent }) {
+        return await this.sendAndWaitResponse({
+            type: 'chat',
+            chatId: randText(CHAT_ID_LENGTH),
+            topicId,
+            content: {
+                type: 'update.extra',
+                text: chatId,
+                extra,
+            },
+        }, onsent)
+    }
 }

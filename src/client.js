@@ -88,6 +88,7 @@ export class Client extends Connection {
         logItem.createdAt = formatDate(req.createdAt || new Date())
         logItem.updatedAt = formatDate(req.createdAt || new Date())
         store.updateMessages([logItem])
+        return logItem
     }
     /**
      * Guest login

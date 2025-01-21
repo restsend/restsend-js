@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import ServiceApi  from '../src/services';
+import ServiceApi from '../src/services';
 import { server } from './common';
 
 describe('Services', function () {

@@ -216,6 +216,12 @@ export class Connection extends Callback {
         const w = this.waiting[resp.chatId]
         if (w) {
             delete this.waiting[resp.chatId]
+            if (resp.code !== 200) {
+                logger.warn('response error', resp)
+                w.onfail && w.onfail(resp)
+            } else {
+                w.onack && w.onack(resp)
+            }
             await w.resolve(resp)
         }
         else {
@@ -256,23 +262,24 @@ export class Connection extends Callback {
         return req
     }
 
-    async sendAndWaitResponse(req, onsent, retry = true) {
+    async sendAndWaitResponse(req, onsent, onack, onfail, retry = true) {
         req = Object.assign(new ChatRequest(), req)
-        this._addPendingToStore(req) // Cliient.js
+        let logItem = this._addPendingToStore(req) // Cliient.js
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _) => {
             this.waiting[req.chatId] = {
                 req,
                 resolve,
-                reject,
+                onack,
+                onfail,
             }
             if (onsent) {
-                onsent(req)
+                onsent(logItem)
             }
             this.doSendRequest(req, retry).then(() => { }).catch((e) => {
                 let w = this.waiting[req.chatId]
                 if (w) {
-                    w.reject(e)
+                    onfail && onfail(e)
                     delete this.waiting[req.chatId]
                 }
             })
@@ -280,7 +287,7 @@ export class Connection extends Callback {
             setTimeout(() => {
                 let w = this.waiting[req.chatId]
                 if (w) {
-                    w.reject(new Error('timeout'))
+                    onfail && onfail(new Error('timeout'))
                     delete this.waiting[req.chatId]
                 }
             }, REQUEST_TIMEOUT * 1000)
@@ -315,7 +322,7 @@ export class Connection extends Callback {
      * @param {String} chatId
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doRecall({ topicId, chatId, onsent }) {
+    async doRecall({ topicId, chatId, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             topicId,
@@ -324,7 +331,7 @@ export class Connection extends Callback {
                 type: 'recall',
                 text: chatId,
             }
-        }, onsent)
+        }, onsent, onack, onfail)
     }
 
     /**
@@ -335,7 +342,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendText({ topicId, text, mentions, reply, onsent }) {
+    async doSendText({ topicId, text, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -346,7 +353,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
     /**
      * Send image message
@@ -357,7 +364,7 @@ export class Connection extends Callback {
      * @option @param {Number} size Image size
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendImage({ topicId, urlOrData, size, mentions, reply, onsent }) {
+    async doSendImage({ topicId, urlOrData, size, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -369,7 +376,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
     /**
      * Send voice message
@@ -380,7 +387,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      * */
-    async doSendVoice({ topicId, urlOrData, duration, mentions, reply, onsent }) {
+    async doSendVoice({ topicId, urlOrData, duration, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -392,7 +399,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
     /**
      * Send video message
@@ -404,7 +411,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, reply, onsent }) {
+    async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -417,7 +424,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
 
     /**
@@ -430,7 +437,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      * */
-    async doSendFile({ topicId, urlOrData, filename, size, mentions, reply, onsent }) {
+    async doSendFile({ topicId, urlOrData, filename, size, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -443,7 +450,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
 
     /**
@@ -456,7 +463,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendLocation({ topicId, latitude, longitude, address, mentions, reply, onsent }) {
+    async doSendLocation({ topicId, latitude, longitude, address, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -468,7 +475,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
 
     /**
@@ -479,7 +486,7 @@ export class Connection extends Callback {
      * @option @param {String} reply Reply message id
      * @param {Function} onsent Callback function after the message is sent
      */
-    async doSendLink({ topicId, url, mentions, reply, onsent }) {
+    async doSendLink({ topicId, url, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -490,7 +497,7 @@ export class Connection extends Callback {
                 mentions,
                 reply,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
     /**
     * Send message
@@ -502,7 +509,7 @@ export class Connection extends Callback {
     * @option @param {String} reply Reply message id
     * @param {Function} onsent Callback function after the message is sent
     */
-    async doSendMessage({ type, topicId, text, placeholder, mentions, reply, onsent }) {
+    async doSendMessage({ type, topicId, text, placeholder, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -514,7 +521,7 @@ export class Connection extends Callback {
                 reply,
                 placeholder,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
     /// Update sent chat message's extra
     /// # Arguments
@@ -522,7 +529,7 @@ export class Connection extends Callback {
     /// * @param {String} chatId The chat id
     /// * @param {Object} extra The extra, optional
     /// * @param {Function} onsent Callback function after the message is sent
-    async doUpdateExtra({ topicId, chatId, extra, onsent }) {
+    async doUpdateExtra({ topicId, chatId, extra, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',
             chatId: randText(CHAT_ID_LENGTH),
@@ -532,6 +539,6 @@ export class Connection extends Callback {
                 text: chatId,
                 extra,
             },
-        }, onsent)
+        }, onsent, onack, onfail)
     }
 }

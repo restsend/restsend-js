@@ -258,6 +258,8 @@ export class Connection extends Callback {
 
     async sendAndWaitResponse(req, onsent, retry = true) {
         req = Object.assign(new ChatRequest(), req)
+        this._addPendingToStore(req) // Cliient.js
+
         return new Promise((resolve, reject) => {
             this.waiting[req.chatId] = {
                 req,

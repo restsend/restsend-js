@@ -1,7 +1,7 @@
 import ServiceApi from './services'
 import { Connection } from './connection'
 import { logger, formatDate } from './utils'
-import { ChatLog, Topic, User, Conversation, UploadResult } from './types'
+import { ChatLog, Topic, User, Conversation, UploadResult, LogStatusSending } from './types'
 import { ClientStore } from './store'
 
 export class Client extends Connection {
@@ -71,6 +71,24 @@ export class Client extends Connection {
         this.onConversationUpdated(conversation)
     }
 
+    async _addPendingToStore(req) {
+        const store = this.store.getMessageStore(req.topicId)
+
+        let logItem = Object.assign(new ChatLog(), req)
+        logItem.attendee = req.attendee
+        logItem.senderId = this.myId
+        logItem.isSentByMe = true
+        logItem.status = LogStatusSending
+        Object.defineProperty(logItem, 'sender', {
+            get: async () => {
+                return await this.getUser(req.attendee) || req.attendeeProfile
+            }
+        })
+
+        logItem.createdAt = formatDate(req.createdAt || new Date())
+        logItem.updatedAt = formatDate(req.createdAt || new Date())
+        store.updateMessages([logItem])
+    }
     /**
      * Guest login
      */

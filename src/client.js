@@ -53,7 +53,7 @@ export class Client extends Connection {
         let conversation = this.store.processIncoming(topic, logItem, hasRead)
         if (conversation) {
             this.onConversationUpdated(conversation)
-        } else {
+        } else if (logItem.content?.type === 'conversation.removed') {
             this.onConversationRemoved(topicId)
         }
         return code

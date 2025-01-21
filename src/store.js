@@ -26,6 +26,16 @@ class MessageStore {
     async getMessages(lastSeq, limit) {
         let logs = this.getMessagesFromCache(lastSeq, limit)
         if (logs) {
+            logs.forEach(log => {
+                switch (log.content?.type) {
+                    case 'update.extra':
+                    case 'recall':
+                        let oldLog = this.messages.find(m => m.chatId == log.content.text)
+                        if (oldLog) {
+                            logs.push(oldLog)
+                        }
+                }
+            })
             return { logs }
         }
         const resp = await this.services.getChatLogsDesc(this.topicId, lastSeq, limit || this.bucketSize)
@@ -236,9 +246,6 @@ export class ClientStore {
      */
     processIncoming(topic, logItem, hasRead) {
         topic.lastSeq = logItem.seq > topic.lastSeq ? logItem.seq : topic.lastSeq
-        if (!logItem.readable) {
-            return
-        }
         if (logItem.seq == 0 || !logItem.chatId) {
             return
         }
@@ -267,7 +274,6 @@ export class ClientStore {
             case 'recall':
                 oldLog = store.getMessageByChatId(logItem.content.text)
                 if (oldLog && !oldLog.recall) {
-                    oldLog.recall = true
                     let now = Date.now()
                     if (now - oldLog.createdAt >= 1000 * MAX_RECALL_SECS) {
                         break
@@ -275,7 +281,8 @@ export class ClientStore {
                     if (oldLog.senderId != logItem.senderId) {
                         break
                     }
-                    oldLog.content = { type: '' }
+                    oldLog.recall = true
+                    oldLog.content = { type: 'recalled' }
                 }
                 break
             case 'update.extra':

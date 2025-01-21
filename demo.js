@@ -216,7 +216,12 @@ class DemoApp {
                     this.messageIds[log.chatId] = this.messages.length - 1
                 } else {
                     let idx = this.messageIds[log.chatId]
-                    this.messages[idx].extra = log.extra
+                    this.messages[idx] = log
+                    //update ui
+                    let elm = document.getElementById('chat-item-' + log.chatId)
+                    if (elm) {
+                        elm.innerHTML = this.renderLog(log)
+                    }
                 }
             })
             this.messages.sort((a, b) => a.compareSort(b))
@@ -318,13 +323,8 @@ class DemoApp {
             return
         }
         let resp = await this.client.doRecall({ topicId: this.current.topicId, chatId: item.chatId })
-        if (resp.code === 200) {
-            item.content.type = 'recalled'
-            // update the message
-            let elm = document.getElementById('chat-item-' + item.chatId)
-            if (elm) {
-                elm.innerHTML = this.renderLog(item)
-            }
+        if (resp.code !== 200) {
+            this.logit('recall failed', resp)
         }
     }
     /**

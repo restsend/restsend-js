@@ -61,15 +61,19 @@ class DemoApp {
         }
         this.conversations = []
     }
-    async startApp(username) {
+    async startApp(username, guestRandom) {
         this.shutdown()
 
         const client = createRsClient(endpoint)
         let authInfo = undefined
         try {
             if (!username) {
-                this.logit('start app with', 'guest-demo')
-                authInfo = await client.guestLogin({ guestId: 'guest-demo' })
+                let guestId = 'guest-demo'
+                if (guestRandom) {
+                    guestId = `${Math.random().toString(36).substring(2)}-guest-random`
+                }
+                this.logit('start app with', guestId)
+                authInfo = await client.guestLogin({ guestId })
             } else {
                 authInfo = await client.login({ username, password: `${username}:demo` })
             }

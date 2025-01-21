@@ -23,6 +23,8 @@
                 :class="{ 'bg-gray-300': client && /bob/i.test(client.myId) }">Bob</li>
             <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp()"
                 :class="{ 'bg-gray-300': client && /guest-demo/i.test(client.myId) }">Guest</li>
+            <li class="p-4 border-b border-gray-300 cursor-pointer hover:bg-gray-200" @click="startApp(undefined, true)"
+                :class="{ 'bg-gray-300': client && /guest-random/i.test(client.myId) }">Guest(Random)</li>
         </ul>
     </div>
 
@@ -38,8 +40,7 @@
                         <div><span x-text="item.name"></span></div>
                         <div>
                             <span x-text="item.topicId"></span>
-                             <span class="px-2 text-gray-300"
-                                x-text="'('+item.lastSeq+')'"></span>
+                            <span class="px-2 text-gray-300" x-text="'('+item.lastSeq+')'"></span>
                         </div>
                     </div>
                     <div>
@@ -60,17 +61,18 @@
                         <div class="bg-blue-100 p-2 rounded-lg inline-block text-sm"
                             :class="[ item.isSentByMe ?'bg-green-100 order-1': 'bg-blue-100 order-2' ]"
                             :id="'chat-item-'+item.chatId" x-html="renderLog(item)"></div>
-                          <span
+                        <span
                             class="invisible group-hover/item:visible gap-2 text-xs text-gray-500 flex items-center gap-x-1 bg-gray-50 rounded px-2 py-1"
                             :class="[ item.isSentByMe ?'': 'order-2' ]">
-                            <span x-show="item.isSentByMe && item?.content?.type !=='recalled'" class="cursor-pointer hover:text-gray-700"
-                                @click="doRecallMessage(item)">
+                            <span x-show="item.isSentByMe && item?.content?.type !=='recalled'"
+                                class="cursor-pointer hover:text-gray-700" @click="doRecallMessage(item)">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                     <path fill="currentColor"
                                         d="M20 13.5V20h-2v-6.5C18 11 16 9 13.5 9H7.83l3.08 3.09L9.5 13.5L4 8l5.5-5.5l1.42 1.41L7.83 7h5.67a6.5 6.5 0 0 1 6.5 6.5" />
                                 </svg>
                             </span>
-                            <span x-show="item?.content?.type !=='recalled'" class="cursor-pointer hover:text-gray-700" @click="doQuoteMessage(item)">
+                            <span x-show="item?.content?.type !=='recalled'" class="cursor-pointer hover:text-gray-700"
+                                @click="doQuoteMessage(item)">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                     <path fill="currentColor"
                                         d="M21 3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1zm-1 2H4v13.385L5.763 17H20zm-9.485 2.412l.447.688c-1.668.903-1.639 2.352-1.639 2.665c.155-.022.318-.025.48-.01a1.76 1.76 0 0 1 1.613 1.745a1.75 1.75 0 0 1-1.75 1.75c-.537 0-1.05-.245-1.374-.59c-.515-.546-.792-1.16-.792-2.155c0-1.75 1.228-3.318 3.015-4.093m5 0l.447.688c-1.668.903-1.639 2.352-1.639 2.665c.155-.022.318-.025.48-.01a1.76 1.76 0 0 1 1.613 1.745a1.75 1.75 0 0 1-1.75 1.75c-.537 0-1.05-.245-1.374-.59c-.515-.546-.792-1.16-.792-2.155c0-1.75 1.228-3.318 3.015-4.093" />
@@ -145,4 +147,5 @@
         </div>
     </div>
 </body>
+
 </html>

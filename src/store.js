@@ -44,6 +44,7 @@ class MessageStore {
             log.isSentByMe = log.senderId === this.services.myId
             log.createdAt = formatDate(log.createdAt || Date.now())
             log.updatedAt = formatDate(log.createdAt || Date.now())
+            log.status = LogStatusReceived
             logs.push(log)
         }
         this.updateMessages(logs)

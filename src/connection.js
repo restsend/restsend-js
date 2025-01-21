@@ -218,7 +218,7 @@ export class Connection extends Callback {
             delete this.waiting[resp.chatId]
             if (resp.code !== 200) {
                 logger.warn('response error', resp)
-                w.onfail && w.onfail(resp)
+                w.onfail && w.onfail(resp.chatId, resp)
             } else {
                 w.onack && w.onack(resp)
             }
@@ -279,7 +279,7 @@ export class Connection extends Callback {
             this.doSendRequest(req, retry).then(() => { }).catch((e) => {
                 let w = this.waiting[req.chatId]
                 if (w) {
-                    onfail && onfail(e)
+                    onfail && onfail(req.chatId, e)
                     delete this.waiting[req.chatId]
                 }
             })
@@ -287,7 +287,7 @@ export class Connection extends Callback {
             setTimeout(() => {
                 let w = this.waiting[req.chatId]
                 if (w) {
-                    onfail && onfail(new Error('timeout'))
+                    onfail && onfail(req.chatId, new Error('timeout'))
                     delete this.waiting[req.chatId]
                 }
             }, REQUEST_TIMEOUT * 1000)

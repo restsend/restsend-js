@@ -71,7 +71,7 @@ export class Client extends Connection {
         this.onConversationUpdated(conversation)
     }
 
-    async _addPendingToStore(req) {
+    _addPendingToStore(req) {
         const store = this.store.getMessageStore(req.topicId)
 
         let logItem = Object.assign(new ChatLog(), req)

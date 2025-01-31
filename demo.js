@@ -262,7 +262,12 @@ class DemoApp {
         let output = '';
         switch (content.type) {
             case 'text':
-                output = `<div>${content.text}</div>`;
+                let text = content.text;
+                if (content.text.length > 512) {
+                    text = content.text.substring(0, 512);
+                    text += ` ... (more ${content.text.length - 512} bytes)`;
+                }
+                output = `<div class="w-96 overflow-hidden text-overflow-ellipsis">${text}</div>`;
                 break;
             case 'logs':
                 output = `<div class="border border-gray-400 rounded-md bg-gray-100 p-3">

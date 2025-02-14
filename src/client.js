@@ -177,7 +177,7 @@ export class Client extends Connection {
             throw new Error('conversation not found')
         }
         let msgStore = this.store.getMessageStore(conversation.topicId)
-        return msgStore.getMessages(lastSeq || conversation.lastMessageSeq, limit)
+        return await msgStore.getMessages(lastSeq || conversation.lastMessageSeq, limit)
     }
 
     /**

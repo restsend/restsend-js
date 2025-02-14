@@ -348,6 +348,9 @@ export class Conversation {
             obj.lastMessage = logItem.content
             obj.lastMessageAt = logItem.createdAt
             obj.lastMessageSeq = logItem.seq
+            if (logItem.seq > obj.lastSeq) {
+                obj.lastSeq = logItem.seq
+            }
         }
         return obj
     }
@@ -406,6 +409,7 @@ export class Conversation {
         this.lastSenderId = null
         this.lastReadSeq = 0
         this.lastReadAt = null
+        this.lastSeq = 0
 
         /**
          * @type {Number} the starting sequence number of the conversation

@@ -26,10 +26,10 @@ describe('Client auth', function () {
     describe('#login', function () {
         it('should login', async () => {
             var client = new Client(server)
-            expect(await client.login({username:'guido', password:'guido:demo'})).toHaveProperty('token')
-            expect(await client.login({username:'vitalik', password:'vitalik:demo'})).toHaveProperty('token')
-            expect(await client.login({username:'alice', password:'alice:demo'})).toHaveProperty('token')
-            expect(await client.login({username:'bob', password:'bob:demo'})).toHaveProperty('token')
+            expect(await client.login({ username: 'guido', password: 'guido:demo' })).toHaveProperty('token')
+            expect(await client.login({ username: 'vitalik', password: 'vitalik:demo' })).toHaveProperty('token')
+            expect(await client.login({ username: 'alice', password: 'alice:demo' })).toHaveProperty('token')
+            expect(await client.login({ username: 'bob', password: 'bob:demo' })).toHaveProperty('token')
         })
     })
 })

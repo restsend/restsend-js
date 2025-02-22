@@ -5,7 +5,6 @@ import { ChatRequest } from './types'
 import { logger, randText } from './utils'
 import { Callback } from './callback'
 import { WrappedWxSocket } from './wrappedsocket'
-import { JSbridgeSocket } from './jsbridgesocket'
 
 const CHAT_ID_LENGTH = 8
 const REQUEST_TIMEOUT = 15 // 15 seconds
@@ -13,9 +12,6 @@ const keepaliveInterval = 30 * 1000 // 30 seconds
 const reconnectInterval = 5 * 1000 // 5 seconds
 
 function createWebSocket(url) {
-    if (typeof jsbsocket !== 'undefined') { // jsbsocket is a global variable
-        return new JSbridgeSocket(url)
-    }
     if (typeof wx !== 'undefined') {
         return new WrappedWxSocket(url)
     }
@@ -25,7 +21,7 @@ function createWebSocket(url) {
 export class Connection extends Callback {
     constructor(endpoint) {
         super()
-
+        this.newWebSocket = createWebSocket
         this.device = 'web'
         endpoint = endpoint || ''
         this.endpoint = endpoint.replace(/http/, 'ws')
@@ -127,7 +123,7 @@ export class Connection extends Callback {
             url = `${url}&token=${this.token}`
         }
 
-        this.ws = createWebSocket(url)
+        this.ws = this.newWebSocket(url)
 
         this.ws.onopen = this._onOpen.bind(this)
         this.ws.onclose = this._onClose.bind(this)

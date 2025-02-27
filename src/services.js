@@ -29,8 +29,8 @@ export default class ServicesApi {
         return resp
     }
 
-    async guestLogin(guestId, remember = true) {
-        const resp = await this.backend.post(`${this.endpoint}/api/guest/login`, { guestId, remember })
+    async guestLogin(guestId, remember = true, extra = undefined) {
+        const resp = await this.backend.post(`${this.endpoint}/api/guest/login`, { guestId, remember, extra })
         this.authToken = resp.token
         this.myId = resp.email
         return resp

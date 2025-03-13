@@ -144,7 +144,8 @@ export class Client extends Connection {
                 return
             }
             for (let idx = 0; idx < items.length; idx++) {
-                let unread = items[idx].lastSeq - items[idx].lastReadSeq
+                const lastMessageSeq = items[idx].lastMessageSeq || items[idx].lastSeq
+                let unread = lastMessageSeq - items[idx].lastReadSeq
                 if (unread < 0) {
                     unread = 0
                 }

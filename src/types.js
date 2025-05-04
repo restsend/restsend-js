@@ -102,6 +102,9 @@ export class User {
          * @type {Date} update time
         */
         this.updatedAt = null
+        /**
+         * @type {Date} cached time
+        */
         this.cachedAt = undefined
     }
 
@@ -197,6 +200,9 @@ export class Topic {
          * @type {Boolean} is muted
          * */
         this.muted = false
+        /**
+         * @type {Date} cached time
+         * */
         this.cachedAt = undefined
     }
 }
@@ -438,6 +444,10 @@ export class Conversation {
          * @type {String} topic owner id
          * */
         this.topicOwnerID = null
+        /**
+         * @type {Date} cached time
+         * */
+        this.cachedAt = undefined
     }
     compareSort(other) {
         const lhsDate = formatDate(this.lastMessageAt || this.updatedAt)

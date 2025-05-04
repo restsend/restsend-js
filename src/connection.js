@@ -177,7 +177,7 @@ export class Connection extends Callback {
 
         let req = JSON.parse(event.data)
         req = Object.assign(new ChatRequest(), req)
-        req.receivedAt = Date.now()
+        req.receivedAt = new Date()
         // Call the subclass's handler function
         this._handleRequest(req).then((code) => {
             if (req.chatId && req.type !== 'resp') {

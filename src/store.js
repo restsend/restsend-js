@@ -52,8 +52,8 @@ class MessageStore {
                 }
             })
             log.isSentByMe = log.senderId === this.services.myId
-            log.createdAt = formatDate(log.createdAt || Date.now())
-            log.updatedAt = formatDate(log.createdAt || Date.now())
+            log.createdAt = formatDate(log.createdAt || new Date())
+            log.updatedAt = formatDate(log.createdAt || new Date())
             log.status = LogStatusReceived
             logs.push(log)
         }
@@ -125,9 +125,13 @@ export class ClientStore {
      */
     constructor(services) {
         this.services = services
-        this.users = {}
-        this.conversations = {}
-        this.topics = {}
+        /** @type {Map<String, User>} */
+        this.users = new Map()
+        /** @type {Map<String, Conversation>} */
+        this.conversations = new Map()
+        /** @type {Map<String, Topic>} */
+        this.topics = new Map()
+        /** @type {Map<String, MessageStore>} */
         this.topicMessages = {}
         this.lastSyncConversation = undefined
     }
@@ -150,21 +154,20 @@ export class ClientStore {
     }
 
     async getUser(userId, maxAge = 1000 * 60) { // 1 minute
-        let user = this.users[userId]
+        let user = this.users.get(userId)
         if (user && maxAge > 0) {
-            if (Date.now() - user.cachedAt < maxAge) {
+            if (user.cachedAt && Date.now() - user.cachedAt.getTime() < maxAge) {
                 return user
             }
-            return user
         }
         let info = await this.services.getUserInfo(userId)
         return this.updateUser(userId, info)
     }
 
     async getTopic(topicId, maxAge = 1000 * 60) { // 1 minute
-        let topic = this.topics[topicId]
+        let topic = this.topics.get(topicId)
         if (topic && maxAge > 0) {
-            if (Date.now() - topic.cachedAt < maxAge) {
+            if (topic.cachedAt && Date.now() - topic.cachedAt.getTime() < maxAge) {
                 return topic
             }
         }
@@ -181,10 +184,10 @@ export class ClientStore {
             }
         })
 
-        topic.cachedAt = Date.now()
+        topic.cachedAt = new Date()
         if (topic.notice) {
             topic.notice = Object.assign(new TopicNotice(), topic.notice)
-            topic.notice.updatedAt = formatDate(topic.notice.updatedAt || Date.now())
+            topic.notice.updatedAt = formatDate(topic.notice.updatedAt || new Date())
         }
         this.topics[topicId] = topic
         return topic
@@ -196,9 +199,9 @@ export class ClientStore {
      * @returns {Conversation}
      */
     async getConversation(topicId, maxAge = 1000 * 60) {
-        let conversation = this.conversations[topicId]
+        let conversation = this.conversations.get(topicId)
         if (conversation && maxAge > 0) {
-            if (Date.now() - conversation.cachedAt < maxAge) {
+            if (conversation.cachedAt && Date.now() - conversation.cachedAt.getTime() < maxAge) {
                 return conversation
             }
         }
@@ -219,7 +222,7 @@ export class ClientStore {
             }
         })
 
-        conversation.cachedAt = Date.now()
+        conversation.cachedAt = new Date()
         this.conversations[topicId] = conversation
         return conversation
     }
@@ -229,7 +232,7 @@ export class ClientStore {
         if (!user.id) {
             user.id = data.userId
         }
-        user.cachedAt = Date.now()
+        user.cachedAt = new Date()
         this.users[userId] = user
         return user
     }
@@ -274,8 +277,8 @@ export class ClientStore {
             case 'recall':
                 oldLog = store.getMessageByChatId(logItem.content.text)
                 if (oldLog && !oldLog.recall) {
-                    let now = Date.now()
-                    if (now - oldLog.createdAt >= 1000 * MAX_RECALL_SECS) {
+                    let now = new Date()
+                    if (now.getTime() - oldLog.createdAt.getTime() >= 1000 * MAX_RECALL_SECS) {
                         break
                     }
                     if (oldLog.senderId != logItem.senderId) {

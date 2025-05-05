@@ -1,0 +1,23 @@
+{
+  "name": "@resetsend/sdk",
+  "version": "0.0.1",
+  "description": "H5 IM SDK",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "eslint ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.11.27",
+    "eslint": "^9.22.0",
+    "typescript": "~5.7.2",
+    "tsup": "^8.0.1"
+  }
+}

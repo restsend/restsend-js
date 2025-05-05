@@ -46,7 +46,7 @@ export interface IClient {
    * 使用 guestId 登录
    * @param guestId 游客ID
    */
-  guestLogin(guestId: string): Promise<User>;
+  guestLogin(guestId: string,remember?:boolean,extra?:Record<string,any>): Promise<User>;
 
   /**
    * 使用用户名和密码登录

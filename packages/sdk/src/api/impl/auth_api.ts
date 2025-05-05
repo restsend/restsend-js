@@ -27,7 +27,7 @@ export class AuthApi implements IAuthApi {
     return resp;
   }
 
-  async guestLogin(guestId: string, remember = true, extra = undefined) {
+  async guestLogin(guestId: string, remember = true, extra?: Record<string, any>) {
     const resp = await this.backend.post(`/api/guest/login`, {
       guestId,
       remember,

@@ -23,7 +23,7 @@ export interface IAuthApi {
    * @param remember 是否记住登录
    * @param extra 额外参数
    */
-  guestLogin(guestId: string, remember?: boolean, extra?: any): Promise<User>;
+  guestLogin(guestId: string, remember?: boolean, extra?: Record<string, any>): Promise<User>;
 
   /**
    * 用户登录

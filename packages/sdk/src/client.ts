@@ -157,8 +157,8 @@ export class Client implements IClient, IMessageService {
     this.connection.shutdown();
   }
 
-  guestLogin(guestId: string): Promise<User> {
-    return this.apis.auth.guestLogin(guestId);
+  guestLogin(guestId: string,remember?:boolean,extra?:Record<string,any>): Promise<User> {
+    return this.apis.auth.guestLogin(guestId,remember,extra);
   }
 
   login(username: string, password: string): Promise<User> {

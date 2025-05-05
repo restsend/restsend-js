@@ -51,7 +51,6 @@ const MessageDropdownMenu: React.FC<MessageDropdownMenuProps> = ({
       const menuRect = menuRef.current.getBoundingClientRect();
       
       // 检查视窗宽高
-      const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
       // 计算top位置

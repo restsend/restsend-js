@@ -1,5 +1,5 @@
 import React from "react";
-import { Content, ChatLog } from "@resetsend/sdk";
+import { Content } from "@resetsend/sdk";
 
 interface ReplyMessageWrapperProps {
   content: Content;

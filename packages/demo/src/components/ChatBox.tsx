@@ -14,7 +14,7 @@ const ChatBox = () => {
     }
   }, [messages]);
 
-  const onScrollMessages = (event: React.UIEvent<HTMLDivElement>) => {};
+  const onScrollMessages = (_: React.UIEvent<HTMLDivElement>) => {};
 
   return (
     <div 

@@ -18,11 +18,11 @@
     "build": "tsup",
     "lint": "eslint ."
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.11.27",
     "eslint": "^9.22.0",
-    "typescript": "~5.7.2",
-    "tsup": "^8.0.1"
+    "miniprogram-api-typings": "^4.0.7",
+    "tsup": "^8.0.1",
+    "typescript": "~5.7.2"
   }
 }

@@ -178,7 +178,7 @@ export const useAppStore = create<State & Actions>((set, get) => ({
 
     if (!client) return;
 
-    const { logs, hasMore } = await client.syncChatlogs(topicId, lastSeq, limit);
+    const { logs } = await client.syncChatlogs(topicId, lastSeq, limit);
     if (logs) {
       const newMessageIds = { ...messageIds };
       const newMessages = [...messages] as ChatLog[];

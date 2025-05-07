@@ -4,6 +4,7 @@ import { IClient } from "./iclient";
 import { Connection } from "./network/connection";
 import {
   FileMessageParams,
+  GenericMessageParams,
   ImageMessageParams,
   IMessageService,
   ReadMessageParams,
@@ -41,6 +42,7 @@ export class Client implements IClient, IMessageService {
 
     this._initHandlers();
   }
+
 
   _initHandlers() {
     this.connection.handlers.chat = async (
@@ -194,6 +196,11 @@ export class Client implements IClient, IMessageService {
   }
 
   //----------------- 消息服务接口实现 -----------------
+
+  doSend(params: GenericMessageParams): Promise<void> {
+    return this.messageService.doSend(params);
+  }
+
 
   doTyping(topicId: string): Promise<void> {
     return this.messageService.doTyping(topicId);

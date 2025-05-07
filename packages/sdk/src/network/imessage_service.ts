@@ -2,6 +2,9 @@
  * 消息服务接口
  */
 export interface IMessageService {
+
+  doSend(params: GenericMessageParams): Promise<void>;
+
   doTyping(topicId: string): Promise<void>;
 
   doRead({ topicId, lastSeq }: ReadMessageParams): Promise<void>;
@@ -157,12 +160,11 @@ export interface LinkMessageParams extends BaseMessageParams, CallbackParams {
  * 通用消息参数接口
  */
 export interface GenericMessageParams extends BaseMessageParams, CallbackParams {
+  [key: string]: any; // 允许任意字段
   /** 消息类型 */
   type: string;
   /** 消息内容 */
   text: string;
-  /** 占位文本 */
-  placeholder?: string;
   /** 提及的用户ID数组 */
   mentions?: string[];
   /** 回复的消息ID */

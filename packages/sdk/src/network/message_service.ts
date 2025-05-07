@@ -3,12 +3,24 @@ import { IClientStore } from "../store";
 import { ChatRequest, Content } from "../types";
 import { randText } from "../utils";
 import { Connection } from "./connection";
-import { FileMessageParams, GenericMessageParams, ImageMessageParams, IMessageService, LinkMessageParams, LocationMessageParams, ReadMessageParams, RecallMessageParams, TextMessageParams, UpdateExtraParams, VideoMessageParams, VoiceMessageParams } from "./imessage_service";
+import {
+  FileMessageParams,
+  GenericMessageParams,
+  ImageMessageParams,
+  IMessageService,
+  LinkMessageParams,
+  LocationMessageParams,
+  ReadMessageParams,
+  RecallMessageParams,
+  TextMessageParams,
+  UpdateExtraParams,
+  VideoMessageParams,
+  VoiceMessageParams,
+} from "./imessage_service";
 
 const CHAT_ID_LENGTH = 8;
 
-
-export class MessageService implements IMessageService{
+export class MessageService implements IMessageService {
   private connection: Connection;
 
   private store: IClientStore;
@@ -21,6 +33,30 @@ export class MessageService implements IMessageService{
     this.apis = apis;
   }
 
+  async doSend(params: GenericMessageParams): Promise<void> {
+    const { topicId, text, mentions, reply, onsent, onack, onfail, extra } = params;
+
+    const req = {
+      type: "chat",
+      chatId: randText(CHAT_ID_LENGTH),
+      topicId,
+      content: {
+        type: params.type,
+        text,
+        mentions,
+        reply,
+        extra,
+      } as Content,
+    } as ChatRequest;
+
+    return await this.connection.sendAndWaitResponse(
+      req,
+      onsent || (() => {}),
+      onack || (() => {}),
+      onfail || (() => {})
+    );
+  }
+
   /**
    * Typing indicator, only for personal chat
    * @param {String} topicId
@@ -30,7 +66,7 @@ export class MessageService implements IMessageService{
       topicId,
       type: "typing",
     } as ChatRequest;
-     await this.connection.doSendRequest(req, false);
+    await this.connection.doSendRequest(req, false);
   }
 
   /**
@@ -43,7 +79,7 @@ export class MessageService implements IMessageService{
       type: "read",
       seq: lastSeq,
     } as ChatRequest;
-     await this.connection.doSendRequest(req, false);
+    await this.connection.doSendRequest(req, false);
   }
   /**
    * Recall a message
@@ -51,7 +87,7 @@ export class MessageService implements IMessageService{
    * @param {String} chatId
    * @param {Function} onsent Callback function after the message is sent
    */
-  async doRecall(params: RecallMessageParams): Promise<void>  {
+  async doRecall(params: RecallMessageParams): Promise<void> {
     const { topicId, chatId, onsent, onack, onfail, extra } = params;
 
     const req = {

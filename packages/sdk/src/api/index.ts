@@ -52,7 +52,7 @@ export const createApis = (endpoint: string): IAllApi => {
     extra: createExtraApi(backend),
     topic: createTopicApi(backend),
     user: createUserApi(backend),
-    post: backend.post,
-    get: backend.get,
+    post: (url, data) => backend.post(url, data),
+    get: (url) => backend.get(url),
   };
 };

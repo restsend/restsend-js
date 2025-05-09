@@ -18,13 +18,25 @@ export const createExtraApi = (backend: BackendService) => new ExtraApi(backend)
 export const createTopicApi = (backend: BackendService) => new TopicApi(backend);
 export const createUserApi = (backend: BackendService) => new UserApi(backend);
 
-
 export interface IAllApi {
   auth: AuthApi;
   chat: ChatApi;
   extra: ExtraApi;
   topic: TopicApi;
   user: UserApi;
+  /**
+   * 发送POST请求
+   * @param url 请求地址
+   * @param data 请求数据
+   * @returns 响应数据
+   */
+  post: (url: string, data?: any) => Promise<any>;
+  /**
+   * 发送GET请求
+   * @param url 请求地址
+   * @returns 响应数据
+   */
+  get: (url: string) => Promise<any>;
 }
 
 /**
@@ -32,9 +44,7 @@ export interface IAllApi {
  * @param endpoint 后端服务地址
  * @returns API实例
  */
-export const createApis = (
-  endpoint: string
-): IAllApi => {
+export const createApis = (endpoint: string): IAllApi => {
   const backend = new BackendService(endpoint);
   return {
     auth: createAuthApi(backend),
@@ -42,5 +52,7 @@ export const createApis = (
     extra: createExtraApi(backend),
     topic: createTopicApi(backend),
     user: createUserApi(backend),
+    post: backend.post,
+    get: backend.get,
   };
 };

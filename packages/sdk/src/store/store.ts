@@ -2,7 +2,7 @@ import { User, Topic, ChatLog, Conversation, Content, ConversationUpdateFields }
 import { formatDate } from "../utils";
 import { compareChatLogs, conversationFromTopic } from "../utils/type_tools";
 import { LogStatusReceived, LogStatusSending, LogStatusSent } from "../constants";
-import { IMessageStore, IClientStore, MessageBucketSize } from "./";
+import { IMessageStore, IClientStore, MessageBucketSize } from "./interfaces";
 import { IAllApi } from "../api";
 
 const MAX_RECALL_SECS = 60 * 2;
@@ -54,13 +54,20 @@ export class MessageStore implements IMessageStore {
       lastSeq,
       limit || this.bucketSize
     );
-    let items = resp.items || [];
+    // 确保 resp 和 resp.items 都存在
+    const items = (resp && resp.items) || [];
+    const hasMore = !!(resp && resp.hasMore);
+    
     logs = [];
 
     for (let i = 0; i < items.length; i++) {
       let log = Object.assign(new ChatLog(), items[i]);
-      log.chatId = log.id;
-      log.id = undefined;
+      // 确保有有效的 chatId，优先级: 1. 现有 chatId 2. id 3. 基于 seq 生成
+      log.chatId = log.chatId || log.id || `msg_${log.seq}`;
+      // 保持 id 字段与 chatId 一致 (如果存在 id 属性)
+      if ('id' in log) {
+        log.id = log.chatId;
+      }
       // TODO: 需要优化
       // Object.defineProperty(log, 'sender', {
       //     get: async () => {
@@ -69,12 +76,12 @@ export class MessageStore implements IMessageStore {
       // })
       log.isSentByMe = log.senderId === this.apis.auth.getMyId();
       log.createdAt = formatDate(log.createdAt || Date.now());
-      log.updatedAt = formatDate(log.createdAt || Date.now());
-      log.status = LogStatusReceived;
+      log.updatedAt = log.createdAt;
+      log.status = log.status || LogStatusReceived;
       logs.push(log);
     }
     this.updateMessages(logs);
-    return { logs, hasMore: resp.hasMore };
+    return { logs, hasMore };
   }
 
   getMessagesFromCache(lastSeq: number, limit = 100) {

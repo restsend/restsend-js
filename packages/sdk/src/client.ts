@@ -15,7 +15,7 @@ import {
 } from "./network/imessage_service";
 import { MessageService } from "./network/message_service";
 
-import { IClientStore } from "./store";
+import { IClientStore, IndexedDBClientStore } from "./store";
 import { createStore } from "./store/main";
 import { ChatLog, ChatRequest, User } from "./types";
 import { formatDate, logger } from "./utils";
@@ -29,20 +29,58 @@ export class Client implements IClient, IMessageService {
 
   private messageService: IMessageService;
 
-  constructor(endpoint: string, callback: Callback) {
-    if (endpoint && endpoint.endsWith("/")) {
-      endpoint = endpoint.slice(0, -1);
-    }
-    this.apis = createApis(endpoint);
-    this.store = createStore(this.apis);
-    this.callback = callback;
-    this.connection = new Connection(endpoint, this.apis, this.store, callback);
+  /**
+   * 客户端构造函数
+   * @param {string|IAllApi} endpointOrApis API端点或API实例
+   * @param {IClientStore|Callback} storeOrCallback 存储实例或回调函数
+   * @param {Callback} callback 回调函数
+   */
+  constructor(
+    endpointOrApis: string | IAllApi,
+    storeOrCallback: IClientStore | Callback,
+    callback?: Callback
+  ) {
+    // 处理参数
+    let endpoint: string | undefined;
+    let store: IClientStore;
 
+    if (typeof endpointOrApis === "string") {
+      endpoint = endpointOrApis;
+      if (endpoint && endpoint.endsWith("/")) {
+        endpoint = endpoint.slice(0, -1);
+      }
+      this.apis = createApis(endpoint);
+
+      if (storeOrCallback && (storeOrCallback as IClientStore).getMessageStore) {
+        // 如果第二个参数是 IClientStore
+        store = storeOrCallback as IClientStore;
+        this.callback = callback;
+      } else {
+        // 如果第二个参数是 Callback
+        store = createStore(this.apis);
+        this.callback = storeOrCallback as Callback;
+      }
+    } else {
+      // 如果第一个参数是 IAllApi
+      this.apis = endpointOrApis;
+
+      if (storeOrCallback && (storeOrCallback as IClientStore).getMessageStore) {
+        // 如果第二个参数是 IClientStore
+        store = storeOrCallback as IClientStore;
+        this.callback = callback;
+      } else {
+        // 如果第二个参数是 Callback
+        store = createStore(this.apis);
+        this.callback = storeOrCallback as Callback;
+      }
+    }
+
+    this.store = store;
+    this.connection = new Connection(endpoint || "", this.apis, this.store, this.callback!);
     this.messageService = new MessageService(this.connection, this.store, this.apis);
 
     this._initHandlers();
   }
-
 
   _initHandlers() {
     this.connection.handlers.chat = async (
@@ -159,8 +197,8 @@ export class Client implements IClient, IMessageService {
     this.connection.shutdown();
   }
 
-  guestLogin(guestId: string,remember?:boolean,extra?:Record<string,any>): Promise<User> {
-    return this.apis.auth.guestLogin(guestId,remember,extra);
+  guestLogin(guestId: string, remember?: boolean, extra?: Record<string, any>): Promise<User> {
+    return this.apis.auth.guestLogin(guestId, remember, extra);
   }
 
   login(username: string, password: string): Promise<User> {
@@ -201,7 +239,6 @@ export class Client implements IClient, IMessageService {
     return this.messageService.doSend(params);
   }
 
-
   doTyping(topicId: string): Promise<void> {
     return this.messageService.doTyping(topicId);
   }
@@ -235,4 +272,18 @@ export class Client implements IClient, IMessageService {
 
 export function createRsClient(endpoint: string, callback: Callback) {
   return new Client(endpoint, callback);
+}
+
+/**
+ * 创建基于 IndexedDB 的客户端
+ * 此客户端会将消息缓存到 IndexedDB 中，支持离线访问
+ *
+ * @param {string} endpoint API 端点
+ * @param {Callback} callback 回调函数
+ * @returns {Client} 客户端实例
+ */
+export function createIndexedDBClient(endpoint: string, callback: Callback): Client {
+  const apis = createApis(endpoint);
+  const store = new IndexedDBClientStore(apis);
+  return new Client(apis, store, callback);
 }

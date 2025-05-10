@@ -1,6 +1,3 @@
-
-
-export * from "./client";
 export * from "./network/connection";
 export * from "./store";
 export * from "./types";
@@ -10,4 +7,4 @@ export * from "./callback";
 export * from "./constants";
 export * from "./api";
 
-
+export { createIndexedDBClient, createRsClient } from "./client";

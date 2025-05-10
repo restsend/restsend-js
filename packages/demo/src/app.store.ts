@@ -8,6 +8,7 @@ import {
   compareConversations,
   Topic,
   Callback,
+  createIndexedDBClient,
 } from "@resetsend/sdk";
 
 const endpoint = "https://chat.ruzhila.cn";
@@ -132,7 +133,7 @@ export const useAppStore = create<State & Actions>((set, get) => ({
         }
       },
     } as Callback;
-    const newClient = createRsClient(endpoint, callback) as Client;
+    const newClient = createIndexedDBClient(endpoint, callback) as Client;
 
     setClient(newClient);
 
@@ -174,32 +175,44 @@ export const useAppStore = create<State & Actions>((set, get) => ({
   },
 
   fetchLastLogs: async ({ topicId, lastSeq, limit }) => {
-    const { client, messages, messageIds, setMessages, setMessageIds } = get();
+    const { client } = get();
 
     if (!client) return;
 
-    const { logs } = await client.syncChatlogs(topicId, lastSeq, limit);
-    if (logs) {
-      const newMessageIds = { ...messageIds };
-      const newMessages = [...messages] as ChatLog[];
+    const fetchMore = async (lastSeq: number, limit: number) => {
+      const { logs, hasMore } = await client.syncChatlogs(topicId, lastSeq, limit);
 
-      logs.forEach((log: ChatLog) => {
-        if (!log.chatId) {
-          return;
-        }
-        if (newMessageIds[log.chatId] === undefined) {
-          newMessages.push(log);
-          newMessageIds[log.chatId] = newMessages.length - 1;
-        } else {
-          let idx = newMessageIds[log.chatId];
-          newMessages[idx] = log;
-        }
-      });
+      const { messages, messageIds, setMessages, setMessageIds } = get();
 
-      newMessages.sort(compareChatLogs);
-      setMessages(newMessages);
-      setMessageIds(newMessageIds);
-    }
+      if (logs) {
+        const newMessageIds = { ...messageIds };
+        const newMessages = [...messages] as ChatLog[];
+
+        logs.forEach((log: ChatLog) => {
+          if (!log.chatId) {
+            return;
+          }
+          if (newMessageIds[log.chatId] === undefined) {
+            newMessages.push(log);
+            newMessageIds[log.chatId] = newMessages.length - 1;
+          } else {
+            let idx = newMessageIds[log.chatId];
+            newMessages[idx] = log;
+          }
+        });
+
+        newMessages.sort(compareChatLogs);
+        setMessages(newMessages);
+        setMessageIds(newMessageIds);
+      }
+
+      if (hasMore && logs.length > 0) {
+        const newLastSeq = logs[logs.length - 1].seq || 0;
+        await fetchMore(newLastSeq, limit);
+      }
+    };
+
+    await fetchMore(lastSeq, limit);
   },
 
   chatWith: async (conversation) => {

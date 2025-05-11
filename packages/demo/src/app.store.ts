@@ -179,8 +179,8 @@ export const useAppStore = create<State & Actions>((set, get) => ({
 
     if (!client) return;
 
-    const fetchMore = async (lastSeq: number, limit: number) => {
-      const { logs, hasMore } = await client.syncChatlogs(topicId, lastSeq, limit);
+    const fetchMoreLogs = async (seqNum: number, lmt: number) => {
+      const { logs, hasMore } = await client.syncChatlogs(topicId, seqNum, lmt);
 
       const { messages, messageIds, setMessages, setMessageIds } = get();
 
@@ -204,15 +204,13 @@ export const useAppStore = create<State & Actions>((set, get) => ({
         newMessages.sort(compareChatLogs);
         setMessages(newMessages);
         setMessageIds(newMessageIds);
+
       }
 
-      if (hasMore && logs.length > 0) {
-        const newLastSeq = logs[logs.length - 1].seq || 0;
-        await fetchMore(newLastSeq, limit);
-      }
     };
 
-    await fetchMore(lastSeq, limit);
+    // 开始获取消息
+    await fetchMoreLogs(lastSeq, limit);
   },
 
   chatWith: async (conversation) => {
@@ -223,13 +221,11 @@ export const useAppStore = create<State & Actions>((set, get) => ({
     setMessages([]);
     setMessageIds({});
 
-    if (conversation) {
-      await fetchLastLogs({
-        topicId: conversation.topicId,
-        lastSeq: 0,
-        limit: 20,
-      });
-    }
+    await fetchLastLogs({
+      topicId: conversation.topicId,
+      lastSeq: 0,
+      limit: 10,
+    });
   },
 
   sendMessage: async () => {

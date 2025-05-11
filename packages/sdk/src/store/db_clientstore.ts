@@ -20,10 +20,10 @@ export class IndexedDBClientStore extends ClientStore {
    * 覆盖父类方法：获取消息存储
    * 返回 IndexedDBMessageStore 实例而不是 MessageStore 实例
    * @param {string} topicId 主题ID
-   * @param {number} bucketSize 消息分页大小，默认100
+   * @param {number} bucketSize 消息分页大小，默认20
    * @returns {IMessageStore} 消息存储实例
    */
-  getMessageStore(topicId: string, bucketSize: number = 100): IMessageStore {
+  getMessageStore(topicId: string, bucketSize: number = 20): IMessageStore {
     let store = this.topicMessageStoree[topicId];
     if (store) {
       return store;

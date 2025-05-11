@@ -4,9 +4,12 @@ import { ChatLog, User, Topic, Conversation } from "../types";
 export const MessageBucketSize = 50;
 
 export interface IMessageStore {
+  
+  hasMore(): boolean;
+
   getMessages(lastSeq: number, limit: number): Promise<{ logs: ChatLog[]; hasMore: boolean }>;
 
-  getMessagesFromCache(lastSeq: number, limit?: number): ChatLog[] | undefined;
+  fetchMessagesFromServer(lastSeq: number, limit: number): Promise<{ logs: ChatLog[]; hasMore: boolean }>;
 
   updateMessages(items: ChatLog[]): void;
 

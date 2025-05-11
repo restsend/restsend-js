@@ -15,87 +15,56 @@ import {
 } from "./network/imessage_service";
 import { MessageService } from "./network/message_service";
 
-import { IClientStore, IndexedDBClientStore } from "./store";
-import { createStore } from "./store/main";
+import { ClientStore, IClientStore, IndexedDBClientStore } from "./store";
 import { ChatLog, ChatRequest, User } from "./types";
 import { formatDate, logger } from "./utils";
 
 export class Client implements IClient, IMessageService {
+  endpoint: string;
   private apis: IAllApi;
-  private store: IClientStore;
+  private store?: IClientStore;
   private callback?: Callback;
 
-  private connection: Connection;
+  private connection?: Connection;
 
-  private messageService: IMessageService;
+  private messageService?: IMessageService;
 
   /**
    * 客户端构造函数
    * @param {string|IAllApi} endpointOrApis API端点或API实例
-   * @param {IClientStore|Callback} storeOrCallback 存储实例或回调函数
+   * @param {IClientStore} store 存储实例
    * @param {Callback} callback 回调函数
    */
-  constructor(
-    endpointOrApis: string | IAllApi,
-    storeOrCallback: IClientStore | Callback,
-    callback?: Callback
-  ) {
-    // 处理参数
-    let endpoint: string | undefined;
-    let store: IClientStore;
-
-    if (typeof endpointOrApis === "string") {
-      endpoint = endpointOrApis;
-      if (endpoint && endpoint.endsWith("/")) {
-        endpoint = endpoint.slice(0, -1);
-      }
-      this.apis = createApis(endpoint);
-
-      if (storeOrCallback && (storeOrCallback as IClientStore).getMessageStore) {
-        // 如果第二个参数是 IClientStore
-        store = storeOrCallback as IClientStore;
-        this.callback = callback;
-      } else {
-        // 如果第二个参数是 Callback
-        store = createStore(this.apis);
-        this.callback = storeOrCallback as Callback;
-      }
-    } else {
-      // 如果第一个参数是 IAllApi
-      this.apis = endpointOrApis;
-
-      if (storeOrCallback && (storeOrCallback as IClientStore).getMessageStore) {
-        // 如果第二个参数是 IClientStore
-        store = storeOrCallback as IClientStore;
-        this.callback = callback;
-      } else {
-        // 如果第二个参数是 Callback
-        store = createStore(this.apis);
-        this.callback = storeOrCallback as Callback;
-      }
+  constructor(endpoint: string, callback?: Callback) {
+    if (endpoint && endpoint.endsWith("/")) {
+      endpoint = endpoint.slice(0, -1);
     }
+    this.endpoint = endpoint;
+    this.callback = callback;
+    this.apis = createApis(endpoint);
+  }
 
+  init(store: IClientStore) {
     this.store = store;
-    this.connection = new Connection(endpoint || "", this.apis, this.store, this.callback!);
+    this.connection = new Connection(this.endpoint || "", this.apis, this.store, this.callback!);
     this.messageService = new MessageService(this.connection, this.store, this.apis);
-
     this._initHandlers();
   }
 
   _initHandlers() {
-    this.connection.handlers.chat = async (
+    this.connection!.handlers.chat = async (
       topicId: string,
       _senderId: string,
       req: ChatRequest
     ) => {
-      let topic = await this.store.getTopic(topicId);
+      let topic = await this.store!.getTopic(topicId);
       if (!topic) {
         // bad topic id
         logger.warn("bad topic id", topicId);
         return;
       }
       if (req.attendeeProfile) {
-        this.store.updateUser(req.attendee || "", req.attendeeProfile);
+        this.store!.updateUser(req.attendee || "", req.attendeeProfile);
       }
 
       let logItem = Object.assign(new ChatLog(), req) as ChatLog;
@@ -103,7 +72,7 @@ export class Client implements IClient, IMessageService {
 
       Object.defineProperty(logItem, "sender", {
         get: async () => {
-          return (await this.store.getUser(req.attendee || "")) || req.attendeeProfile;
+          return (await this.store!.getUser(req.attendee || "")) || req.attendeeProfile;
         },
       });
 
@@ -112,9 +81,9 @@ export class Client implements IClient, IMessageService {
 
       const { code, hasRead } = this.callback?.onTopicMessage?.(topic, logItem) || {};
       if (hasRead) {
-        this.messageService.doRead({ topicId, lastSeq: logItem.seq }).then();
+        this.messageService!.doRead({ topicId, lastSeq: logItem.seq }).then();
       }
-      let conversation = this.store.processIncoming(topic, logItem, hasRead || false);
+      let conversation = this.store!.processIncoming(topic, logItem, hasRead || false);
       if (conversation) {
         this.callback?.onConversationUpdated?.(conversation);
       } else if (logItem.content?.type === "conversation.removed") {
@@ -130,8 +99,8 @@ export class Client implements IClient, IMessageService {
   beginSyncConversations(limit: number = 100) {
     let count = 0;
 
-    let syncAt = this.store.getLastSyncConversation();
-    const conversations = this.store.getConversations();
+    let syncAt = this.store!.getLastSyncConversation();
+    const conversations = this.store!.getConversations();
     for (let id in conversations) {
       this.callback?.onConversationUpdated?.(conversations[id]);
     }
@@ -153,8 +122,8 @@ export class Client implements IClient, IMessageService {
 
         // buildConversation(conversation) TODO: 需要实现
 
-        conversation.topic = await this.store.getTopic(conversation.topicId);
-        this.store.updateConversation(conversation);
+        conversation.topic = await this.store!.getTopic(conversation.topicId);
+        this.store!.updateConversation(conversation);
         this.callback?.onConversationUpdated?.(conversation);
       }
       count += items.length;
@@ -164,7 +133,7 @@ export class Client implements IClient, IMessageService {
       }
     };
     doSync().then(() => {
-      this.store.setLastSyncConversation(syncAt);
+      this.store!.setLastSyncConversation(syncAt);
       logger.debug("sync conversations done count:", count);
     });
   }
@@ -181,20 +150,20 @@ export class Client implements IClient, IMessageService {
     lastSeq: number,
     limit: number
   ): Promise<{ logs: ChatLog[]; hasMore: boolean }> {
-    let conversation = await this.store.getConversation(topicId);
+    let conversation = await this.store!.getConversation(topicId);
     if (!conversation) {
       throw new Error("conversation not found");
     }
-    let msgStore = this.store.getMessageStore(conversation.topicId);
+    let msgStore = this.store!.getMessageStore(conversation.topicId,limit);
     return await msgStore.getMessages(lastSeq || conversation.lastSeq, limit);
   }
 
   connect(): void {
-    this.connection.connect();
+    this.connection!.connect();
   }
 
   shutdown() {
-    this.connection.shutdown();
+    this.connection!.shutdown();
   }
 
   guestLogin(guestId: string, remember?: boolean, extra?: Record<string, any>): Promise<User> {
@@ -217,12 +186,16 @@ export class Client implements IClient, IMessageService {
     return this.apis.auth.getAuthToken();
   }
 
+  setApis(apis: IAllApi) {
+    this.apis = apis;
+  }
+
   getApis() {
     return this.apis;
   }
 
   getStore() {
-    return this.store;
+    return this.store!;
   }
 
   getConnection() {
@@ -236,42 +209,44 @@ export class Client implements IClient, IMessageService {
   //----------------- 消息服务接口实现 -----------------
 
   doSend(params: GenericMessageParams): Promise<void> {
-    return this.messageService.doSend(params);
+    return this.messageService!.doSend(params);
   }
 
   doTyping(topicId: string): Promise<void> {
-    return this.messageService.doTyping(topicId);
+    return this.messageService!.doTyping(topicId);
   }
   doRead({ topicId, lastSeq }: ReadMessageParams): Promise<void> {
-    return this.messageService.doRead({ topicId, lastSeq });
+    return this.messageService!.doRead({ topicId, lastSeq });
   }
 
   async doSendText(params: TextMessageParams): Promise<void> {
-    await this.messageService.doSendText(params);
+    await this.messageService!.doSendText(params);
   }
   async doSendImage(params: ImageMessageParams): Promise<void> {
-    await this.messageService.doSendImage(params);
+    await this.messageService!.doSendImage(params);
   }
   async doSendVoice(params: VoiceMessageParams): Promise<void> {
-    await this.messageService.doSendVoice(params);
+    await this.messageService!.doSendVoice(params);
   }
   async doSendVideo(params: VideoMessageParams): Promise<void> {
-    await this.messageService.doSendVideo(params);
+    await this.messageService!.doSendVideo(params);
   }
   async doSendFile(params: FileMessageParams): Promise<void> {
-    await this.messageService.doSendFile(params);
+    await this.messageService!.doSendFile(params);
   }
   async doRecall(params: RecallMessageParams): Promise<void> {
-    await this.messageService.doRecall(params);
+    await this.messageService!.doRecall(params);
   }
   async deleteMessage(topicId: string, chatId: string): Promise<void> {
-    return this.messageService.deleteMessage(topicId, chatId);
+    return this.messageService!.deleteMessage(topicId, chatId);
   }
   //----------------- 消息服务接口实现 -----------------
 }
 
 export function createRsClient(endpoint: string, callback: Callback) {
-  return new Client(endpoint, callback);
+  const c = new Client(endpoint, callback);
+  c.init(new ClientStore(c.getApis()));
+  return c;
 }
 
 /**
@@ -283,7 +258,8 @@ export function createRsClient(endpoint: string, callback: Callback) {
  * @returns {Client} 客户端实例
  */
 export function createIndexedDBClient(endpoint: string, callback: Callback): Client {
-  const apis = createApis(endpoint);
-  const store = new IndexedDBClientStore(apis);
-  return new Client(apis, store, callback);
+  const c = new Client(endpoint, callback);
+  const store = new IndexedDBClientStore(c.getApis());
+  c.init(store);
+  return c;
 }

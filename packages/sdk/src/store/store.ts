@@ -1,8 +1,8 @@
 import { User, Topic, ChatLog, Conversation, Content, ConversationUpdateFields } from "../types";
 import { formatDate } from "../utils";
-import { compareChatLogs, conversationFromTopic } from "../utils/type_tools";
+import { conversationFromTopic } from "../utils/type_tools";
 import { LogStatusReceived, LogStatusSending, LogStatusSent } from "../constants";
-import { IMessageStore, IClientStore, MessageBucketSize } from "./interfaces";
+import { IMessageStore, IClientStore } from "./interfaces";
 import { IAllApi } from "../api";
 import { MessageStore } from "./memery_store";
 

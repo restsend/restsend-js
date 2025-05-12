@@ -2,7 +2,7 @@
 export * from "./interfaces";
 
 // 导出原始的 MessageStore 和 ClientStore
-export { MessageStore, ClientStore } from "./store";
+export { ClientStore } from "./store";
 
 // 导出扩展的存储实现
 export { IndexedDBMessageStore } from "./indexeddb_store";

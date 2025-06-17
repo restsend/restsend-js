@@ -40,6 +40,7 @@ export const ChatContentType = {
 export const ChatRequestType = {
     Nop: 'nop',
     Chat: 'chat',
+    Ping: 'ping',
     Typing: 'typing',
     Read: 'read',
     Response: 'resp',

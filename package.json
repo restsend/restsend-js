@@ -1,6 +1,6 @@
 {
   "name": "resetsend-js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Restsend Javascript SDK",
   "files": [
     "dist"

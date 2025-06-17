@@ -11,17 +11,17 @@ export async function handleResult(resp) {
     }
     return await resp.json()
 }
-async function wxSendReq(method, url, data, token) { 
-    let header = token ? {'Authorization': `Bearer ${token}`} : undefined
-    return new Promise((resolve, reject)=> {
-            wx.request({
+async function wxSendReq(method, url, data, token) {
+    let header = token ? { 'Authorization': `Bearer ${token}` } : undefined
+    return new Promise((resolve, reject) => {
+        wx.request({
             url,
             method,
             data,
             header,
-            success: (res)=>resolve(res.data),
-            fail:reject
-            })
+            success: (res) => resolve(res.data),
+            fail: reject
+        })
     })
 }
 async function webSendReq(method, url, data, token) {

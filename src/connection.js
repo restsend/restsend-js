@@ -28,6 +28,7 @@ export class Connection extends Callback {
         this.start()
         this.handlers = {
             'nop': this._onNop.bind(this),
+            'ping': this._onPing.bind(this),
             'system': this._onSystem.bind(this),
             'resp': this._onResponse.bind(this),
             'kickout': this._onKickout.bind(this),
@@ -149,7 +150,8 @@ export class Connection extends Callback {
                 this.keepalive = null
                 return
             }
-            this.ws.send(JSON.stringify({ type: 'nop' }))
+            const ping = { type: 'ping', content: { text: new Date().toString() } }
+            this.ws.send(JSON.stringify(ping))
         }, keepaliveInterval)
     }
 
@@ -203,6 +205,14 @@ export class Connection extends Callback {
     async _onNop(topicId, senderId, req) {
         // do nothing
     }
+    async _onPing(topicId, senderId, req) {
+        this.doSendRequest({
+            type: 'resp',
+            chatId: req.chatId,
+            code: 200,
+            content: req.connect,
+        }).then(() => { })
+    }
 
     async _onSystem(topicId, senderId, req) {
         this.onSystemMessage(req)
@@ -229,7 +239,6 @@ export class Connection extends Callback {
         this.onKickoffByOtherClient(req.message)
         this.shutdown()
     }
-
 
     sendResponse(chatId, code) {
         this.doSendRequest({

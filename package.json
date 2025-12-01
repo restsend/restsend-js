@@ -1,30 +1,34 @@
 {
   "name": "resetsend-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Restsend Javascript SDK",
   "files": [
     "dist"
   ],
   "main": "./dist/restsendsdk.umd.js",
   "module": "./dist/restsendsdk.es.js",
+  "types": "./dist/types/main.d.ts",
   "exports": {
     ".": {
       "import": "./dist/restsendsdk.es.js",
-      "require": "./dist/restsendsdk.umd.js"
+      "require": "./dist/restsendsdk.umd.js",
+      "types": "./dist/types/main.d.ts"
     }
   },
   "dependencies": {
-    "lru-cache": "^11.0.2"
+    "lru-cache": "^11.2.4"
   },
   "devDependencies": {
-    "alpinejs": "^3.14.7",
-    "vite": "^6.0.3",
-    "vitest": "^2.1.8",
-    "ws": "^8.13.0"
+    "alpinejs": "^3.15.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6",
+    "vitest": "^4.0.14",
+    "ws": "^8.18.3"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run build:types",
+    "build:types": "tsc",
     "test": "vitest --run"
   },
   "author": "admin@restsend.com",

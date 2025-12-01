@@ -92,14 +92,18 @@ export class Client extends Connection {
     }
     /**
      * Guest login
+     * @param {Object} params
+     * @param {String} params.guestId
      */
     async guestLogin({ guestId }) {
         return await this.services.guestLogin(guestId)
     }
     /**
      * Login with username and password
-     * @param {String} username
-     * @param {String} password
+     * @param {Object} params
+     * @param {String} params.username
+     * @param {String} params.password
+     * @param {Boolean} [params.remember]
      * @returns {User}
      */
     async login({ username, password, remember }) {
@@ -110,7 +114,10 @@ export class Client extends Connection {
     }
     /**
      * Login with cached token
-     * @returns {UserInfo}
+     * @param {Object} params
+     * @param {String} params.username
+     * @param {String} params.token
+     * @returns {User}
      */
     async loginWithToken({ username, token }) {
         if (!token) {
@@ -167,9 +174,10 @@ export class Client extends Connection {
     }
     /**
      * Sync chat logs
-     * @param {String} topicId
-     * @param {Number} lastSeq
-     * @param {Number} limit
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {Number} params.lastSeq
+     * @param {Number} params.limit
      * @returns {Object} { logs, hasMore }
      * */
     async syncChatlogs({ topicId, lastSeq, limit }) {
@@ -317,8 +325,9 @@ export class Client extends Connection {
     updateTopic(topicId, name, icon) { }
     /**
      * Update topic notice
-     * @param {String} topicId
-     * @param {String} text
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.text
      * */
     async updateTopicNotice({ topicId, text }) {
         return await this.services.updateTopicNotice(topicId, text)
@@ -326,8 +335,9 @@ export class Client extends Connection {
 
     /**
      * Mute the entire topic, if duration is empty, unmute
-     * @param {String} topicId
-     * @param {String} duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
      * */
     async silentTopic({ topicId, duration }) {
         return await this.services.silentTopic(topicId, duration)
@@ -335,9 +345,10 @@ export class Client extends Connection {
 
     /**
      * Mute a member, if duration is empty, unmute
-     * @param {String} topicId
-     * @param {String} userId
-     * @param {String} duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
+     * @param {String} params.duration format is 1h, 1d, 1w, 1m, 1y, empty means unmute
      * */
     async silentTopicMember({ topicId, userId, duration }) {
         return await this.services.silentTopicMember(topicId, userId, duration)
@@ -345,20 +356,23 @@ export class Client extends Connection {
 
     /**
      * Add an admin
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      * */
     addTopicAdmin({ topicId, userId }) { }
     /**
      * Remove an admin
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      * */
     removeTopicAdmin({ topicId, userId }) { }
     /**
      * Transfer topic ownership
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      * */
     transferTopic({ topicId, userId }) { }
     /**
@@ -376,10 +390,11 @@ export class Client extends Connection {
 
     /**
      * Apply to join topic chat
-     * @param {String} topicId
-     * @param {String} source
-     * @param {String} message
-     * @param {String} memo
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.source
+     * @param {String} params.message
+     * @param {String} params.memo
      * */
     joinTopic({ topicId, source, message, memo }) {
         return this.services.joinTopic(topicId, source, message, memo)
@@ -387,27 +402,31 @@ export class Client extends Connection {
 
     /**
      * Accept topic chat join request
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      * */
     acceptTopicJoin({ topicId, userId }) { }
     /**
      * Decline topic chat join request, only admins can operate
-     * @param {String} topicId
-     * @param {String} userId
-     * @param {String} message reason
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
+     * @param {String} params.message reason
      * */
     declineTopicJoin({ topicId, userId, message }) { }
     /**
      * Invite to join topic chat
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      */
     inviteTopicMember({ topicId, userId }) { }
     /**
      * Remove topic member
-     * @param {String} topicId
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.userId
      * */
     async removeTopicMember({ topicId, userId }) {
         return await this.services.removeTopicMember(topicId, userId)
@@ -415,21 +434,24 @@ export class Client extends Connection {
 
     /**
      * Set/unset topic do not disturb
-     * @param {String} topicId
-     * @param {Boolean} mute
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {Boolean} params.boolean
      * */
     setTopicMute({ topicId, boolean }) { }
     /**
      * Clear chat history, whether to sync to the server
-     * @param {String} topicId
-     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {Boolean} params.sync whether to sync to the server, invalid for topic chat
      * */
     cleanTopicHistory({ topicId, sync }) { }
     /**
      * Delete a single message, whether to sync to the server
-     * @param {String} topicId
-     * @param {String} chatId
-     * @param {Boolean} sync whether to sync to the server, invalid for topic chat
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.chatId
+     * @param {Boolean} params.sync whether to sync to the server, invalid for topic chat
      */
     deleteMessage({ topicId, chatId, sync }) {
         this.store.getMessageStore(topicId).deleteMessage(chatId)
@@ -447,10 +469,11 @@ export class Client extends Connection {
 
     /**
      * Create a topic
-     * @param userId
-     * @param source
-     * @param message
-     * @param memo
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {String} params.source
+     * @param {String} params.message
+     * @param {String} params.memo
      * @returns {Promise<*>}
      */
     async chatWithUser({ userId, source, message, memo }) {
@@ -468,20 +491,23 @@ export class Client extends Connection {
 
     /**
      * Set contact remark
-     * @param {String} userId
-     * @param {String} remark
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {String} params.remark
      */
     setUserRemark({ userId, remark }) { }
     /**
      * Set/unset contact star
-     * @param {String} userId
-     * @param {Boolean} star
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {Boolean} params.star
      */
     setUserStar({ userId, star }) { }
     /**
      * Set/unset contact blacklist
-     * @param {String} userId
-     * @param {Boolean} block
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {Boolean} params.blocked
      * */
     async setUserBlock({ userId, blocked }) {
         if (blocked) {
@@ -493,7 +519,8 @@ export class Client extends Connection {
 
     /**
      * Set allow chat with user
-     * @param {String} userId
+     * @param {Object} params
+     * @param {String} params.userId
      * */
     async allowChatWithUser({ userId }) {
         return await this.services.allowChatWithUser(userId)
@@ -501,9 +528,10 @@ export class Client extends Connection {
 
     /**
      * 
-     * @param {file} file file object
-     * @param {String} topicId whether the file is uploaded in a topic chat
-     * @param {Boolean} isPrivate whether it is a private file
+     * @param {Object} params
+     * @param {File} params.file file object
+     * @param {String} params.topicId whether the file is uploaded in a topic chat
+     * @param {Boolean} params.isPrivate whether it is a private file
      * @returns {UploadResult} upload result
      */
     async uploadFile({ file, topicId, isPrivate }) {

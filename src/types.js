@@ -460,7 +460,7 @@ export class Conversation {
         //return diff
     }
     /**
-     * @param {Client} client
+     * @param {import('./client').Client} client
      * @returns {Conversation}
      */
     build(client) {
@@ -545,7 +545,7 @@ export class OnMessageResponse {
          * */
         this.hasRead = false
         /**
-         * @type {int} response code
+         * @type {number} response code
          * */
         this.code = 200
     }
@@ -594,7 +594,7 @@ export class UploadResult {
          */
         this.ext = null
         /**
-         * @type {int} size
+         * @type {number} size
          */
         this.size = 0
     }

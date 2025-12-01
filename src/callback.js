@@ -1,4 +1,4 @@
-import { ChatRequest, OnMessageResponse } from "./types"
+import { ChatRequest, OnMessageResponse, Topic, ChatLog, TopicNotice, TopicMember, Conversation, User } from "./types"
 
 export class Callback {
     constructor() {

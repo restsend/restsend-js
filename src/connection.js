@@ -312,7 +312,9 @@ export class Connection extends Callback {
 
     /**
       * Chat message read
-     * @param {String} topicId
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {Number} params.lastSeq
       */
     async doRead({ topicId, lastSeq }) {
         let req = new ChatRequest()
@@ -323,9 +325,12 @@ export class Connection extends Callback {
     }
     /**
      * Recall a message
-     * @param {String} topicId
-     * @param {String} chatId
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.chatId
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doRecall({ topicId, chatId, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -341,11 +346,14 @@ export class Connection extends Callback {
 
     /**
      * Send text message
-     * @param {String} topicId
-     * @param {String} text
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.text
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doSendText({ topicId, text, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -362,12 +370,15 @@ export class Connection extends Callback {
     }
     /**
      * Send image message
-     * @param {String} topicId
-     * @param {String} urlOrData Image URL or base64 encoded image content
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @option @param {Number} size Image size
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.urlOrData Image URL or base64 encoded image content
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Number} [params.size] Image size
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doSendImage({ topicId, urlOrData, size, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -385,12 +396,15 @@ export class Connection extends Callback {
     }
     /**
      * Send voice message
-     * @param {String} topicId
-     * @param {String} urlOrData
-     * @param {String} duration Voice duration, format is 00:00
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.urlOrData
+     * @param {String} params.duration Voice duration, format is 00:00
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      * */
     async doSendVoice({ topicId, urlOrData, duration, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -408,13 +422,16 @@ export class Connection extends Callback {
     }
     /**
      * Send video message
-     * @param {String} topicId
-     * @param {String} url Video URL
-     * @param {String} thumbnail Video thumbnail
-     * @param {String} duration Video duration, format is 00:00
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.urlOrData Video URL
+     * @param {String} params.thumbnail Video thumbnail
+     * @param {String} params.duration Video duration, format is 00:00
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doSendVideo({ topicId, urlOrData, thumbnail, duration, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -434,13 +451,16 @@ export class Connection extends Callback {
 
     /**
      * Send file message
-     * @param {String} topicId
-     * @param {String} urlOrData File URL or base64 encoded file content
-     * @param {String} filename File name
-     * @param {Number} size File size
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.urlOrData File URL or base64 encoded file content
+     * @param {String} params.filename File name
+     * @param {Number} params.size File size
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      * */
     async doSendFile({ topicId, urlOrData, filename, size, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -460,13 +480,16 @@ export class Connection extends Callback {
 
     /**
      * Send location message
-     * @param {String} topicId
-     * @param {Number} latitude Latitude
-     * @param {Number} longitude Longitude
-     * @param {String} address Address
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {Number} params.latitude Latitude
+     * @param {Number} params.longitude Longitude
+     * @param {String} params.address Address
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doSendLocation({ topicId, latitude, longitude, address, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -485,11 +508,14 @@ export class Connection extends Callback {
 
     /**
      * Send link message
-     * @param {String} topicId
-     * @param {String} url Link URL
-     * @option @param {Array<String>} mentions Mentioned people
-     * @option @param {String} reply Reply message id
-     * @param {Function} onsent Callback function after the message is sent
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.url Link URL
+     * @param {Array<String>} [params.mentions] Mentioned people
+     * @param {String} [params.reply] Reply message id
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
      */
     async doSendLink({ topicId, url, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -506,13 +532,16 @@ export class Connection extends Callback {
     }
     /**
     * Send message
-    * @param {String} type
-    * @param {String} topicId
-    * @param {String} text Message content
-    * @option @param {String} placeholder Placeholder text
-    * @option @param {Array<String>} mentions Mentioned people
-    * @option @param {String} reply Reply message id
-    * @param {Function} onsent Callback function after the message is sent
+    * @param {Object} params
+    * @param {String} params.type
+    * @param {String} params.topicId
+    * @param {String} params.text Message content
+    * @param {String} [params.placeholder] Placeholder text
+    * @param {Array<String>} [params.mentions] Mentioned people
+    * @param {String} [params.reply] Reply message id
+    * @param {Function} [params.onsent] Callback function after the message is sent
+    * @param {Function} [params.onack]
+    * @param {Function} [params.onfail]
     */
     async doSendMessage({ type, topicId, text, placeholder, mentions, reply, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
@@ -528,12 +557,16 @@ export class Connection extends Callback {
             },
         }, onsent, onack, onfail)
     }
-    /// Update sent chat message's extra
-    /// # Arguments
-    /// * @param {String} topicId The topic id
-    /// * @param {String} chatId The chat id
-    /// * @param {Object} extra The extra, optional
-    /// * @param {Function} onsent Callback function after the message is sent
+    /**
+     * Update sent chat message's extra
+     * @param {Object} params
+     * @param {String} params.topicId The topic id
+     * @param {String} params.chatId The chat id
+     * @param {Object} [params.extra] The extra, optional
+     * @param {Function} [params.onsent] Callback function after the message is sent
+     * @param {Function} [params.onack]
+     * @param {Function} [params.onfail]
+     */
     async doUpdateExtra({ topicId, chatId, extra, onsent, onack, onfail }) {
         return await this.sendAndWaitResponse({
             type: 'chat',

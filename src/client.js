@@ -94,9 +94,10 @@ export class Client extends Connection {
      * Guest login
      * @param {Object} params
      * @param {String} params.guestId
+     * @param {Object} params.extra
      */
-    async guestLogin({ guestId }) {
-        return await this.services.guestLogin(guestId)
+    async guestLogin({ guestId, extra }) {
+        return await this.services.guestLogin(guestId, remember = true, extra)
     }
     /**
      * Login with username and password

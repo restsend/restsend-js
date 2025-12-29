@@ -107,8 +107,14 @@ export default class ServicesApi {
     }
 
     // Create topic chat
-    async createTopic(name, icon, members) {
-        const resp = await this.backend.post(`${this.endpoint}/api/topic/create`, { name, icon, members })
+    async createTopic(name, icon, members, kind) {
+        const resp = await this.backend.post(`${this.endpoint}/api/topic/create`, { name, icon, members, kind })
+        return resp.items ?? []
+    }
+
+    // Update topic chat
+    async updateTopic(topicId, name, icon, kind) {
+        const resp = await this.backend.post(`${this.endpoint}/api/topic/admin/update/${topicId}`, { name, icon, kind })
         return resp.items ?? []
     }
 

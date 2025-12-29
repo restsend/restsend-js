@@ -37,6 +37,13 @@ export const ChatContentType = {
     UpdateExtra: 'update.extra',
 }
 
+export const TopicKind = {
+    Personal: 'personal',
+    Group: 'group',
+    VIP: 'vip',
+    System: 'system',
+}
+
 export const ChatRequestType = {
     Nop: 'nop',
     Chat: 'chat',
@@ -149,6 +156,10 @@ export class Topic {
          * @type {String} group avatar
          * */
         this.icon = null
+        /**
+         * @type {String} group kind
+         * */
+        this.kind = null
         /**
          * @type {String} remark
          * */
@@ -380,6 +391,10 @@ export class Conversation {
          * @type {Boolean} is group chat
          *  */
         this.multiple = false
+        /**
+         * @type {String} session kind
+         * */
+        this.kind = null
         /**
          * @type {Topic} corresponding Topic details
          */

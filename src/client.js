@@ -300,9 +300,10 @@ export class Client extends Connection {
      * @param {String} params.name
      * @param {String} params.icon http address, needs to be synthesized on the client side, if empty, the server will generate automatically
      * @param {Array<String>} params.members participant ids
+     * @param {String} params.kind topic kind
      * */
-    async createTopic({ name, icon, members }) {
-        return await this.services.createTopic(name, icon, members)
+    async createTopic({ name, icon, members, kind }) {
+        return await this.services.createTopic(name, icon, members, kind)
     }
 
     /**
@@ -319,11 +320,15 @@ export class Client extends Connection {
 
     /**
      * Update topic information
-     * @param {String} topicId
-     * @param {String} name
-     * @param {String} icon
+     * @param {Object} params
+     * @param {String} params.topicId
+     * @param {String} params.name
+     * @param {String} params.icon
+     * @param {String} params.kind
      * */
-    updateTopic(topicId, name, icon) { }
+    async updateTopic({ topicId, name, icon, kind }) {
+        return await this.services.updateTopic(topicId, name, icon, kind)
+    }
     /**
      * Update topic notice
      * @param {Object} params

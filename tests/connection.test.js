@@ -29,7 +29,7 @@ describe('Connection states', function () {
             expect(msg.content).toHaveProperty('type')
             expect(msg.content).toHaveProperty('text')
             expect(msg.content.text).toEqual('hello from unittest')
-            return {code:200, hasRead:true}
+            return { code: 200, hasRead: true }
         }
 
         guido.onTopicMessage = (topic, msg) => {
@@ -40,12 +40,15 @@ describe('Connection states', function () {
             expect(msg.attendee).toEqual('guido')
             if (msg.content.type === 'text') {
                 expect(msg.content.text).toEqual('hello from unittest')
+            } else if (msg.content.type === 'conversation.update') {
+                // Handle conversation updates (e.g., markUnread)
+                expect(msg.content.unreadable).toBe(true)
             } else {
                 expect(msg.content.type).toEqual('topic.join')
             }
-            return {code:200, hasRead:false}
+            return { code: 200, hasRead: false }
         }
-        await guido.doSendText({ topicId:topic.topicId, text: 'hello from unittest' })
+        await guido.doSendText({ topicId: topic.topicId, text: 'hello from unittest' })
         expect(await waitUntil(() => {
             return received
         })).toBe(true)

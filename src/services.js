@@ -72,8 +72,17 @@ export default class ServicesApi {
     }
 
     // Get chat list
-    async getChatList(updatedAt, limit) {
-        return await this.backend.post(`${this.endpoint}/api/chat/list`, { updatedAt, limit })
+    async getChatList(updatedAt, limit, category) {
+        const params = { updatedAt, limit }
+        if (category) {
+            params.category = category
+        }
+        return await this.backend.post(`${this.endpoint}/api/chat/list`, params)
+    }
+
+    // Mark conversation as unread
+    async markConversationUnread(topicId) {
+        return await this.backend.post(`${this.endpoint}/api/chat/unread/${topicId}`)
     }
 
     // Remove from chat list

@@ -137,8 +137,10 @@ export class Client extends Connection {
     }
     /**
      * Start syncing conversation list
+     * @param {Number} limit - maximum number of conversations to fetch per request
+     * @param {String} category - optional category filter for conversations
      */
-    beginSyncConversations(limit) {
+    beginSyncConversations(limit, category) {
         let count = 0
 
         let syncAt = this.store.lastSyncConversation
@@ -147,17 +149,22 @@ export class Client extends Connection {
         }
 
         let doSync = async () => {
-            let { items, updatedAt, hasMore } = await this.services.getChatList(syncAt, limit || 100)
+            let { items, updatedAt, hasMore } = await this.services.getChatList(syncAt, limit || 100, category)
             if (!items) {
                 return
             }
             for (let idx = 0; idx < items.length; idx++) {
-                const lastMessageSeq = items[idx].lastMessageSeq || items[idx].lastSeq
-                let unread = lastMessageSeq - items[idx].lastReadSeq
-                if (unread < 0) {
-                    unread = 0
+                // Use server-side unreadCount if available, otherwise calculate locally
+                if (items[idx].unreadCount !== undefined) {
+                    items[idx].unread = items[idx].unreadCount
+                } else {
+                    const lastMessageSeq = items[idx].lastMessageSeq || items[idx].lastSeq
+                    let unread = lastMessageSeq - items[idx].lastReadSeq
+                    if (unread < 0) {
+                        unread = 0
+                    }
+                    items[idx].unread = unread
                 }
-                items[idx].unread = unread
                 let conversation = await Object.assign(new Conversation(), items[idx]).build(this);
                 this.store.updateConversation(conversation)
                 this.onConversationUpdated(conversation)
@@ -264,6 +271,21 @@ export class Client extends Connection {
             conversation.unread = 0
             await this.doRead({ topicId: conversation.topicId })
         }
+    }
+
+    /**
+     * Mark a conversation as unread
+     * @param {String} topicId
+     * @throws {Exception} if the conversation does not exist
+     */
+    async markConversationUnread(topicId) {
+        let conversation = await this.getConversation(topicId)
+        if (conversation && conversation.unread === 0) {
+            conversation.unread = 1
+            this.store.updateConversation(conversation)
+            this.onConversationUpdated(conversation)
+        }
+        await this.services.markConversationUnread(topicId)
     }
 
     /**

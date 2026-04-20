@@ -9,6 +9,7 @@ import { WrappedWxSocket } from './wrappedsocket'
 const CHAT_ID_LENGTH = 8
 const REQUEST_TIMEOUT = 15 // 15 seconds
 const keepaliveInterval = 30 * 1000 // 30 seconds
+const pingTimeout = 10 * 1000 // 10 seconds to wait for pong
 const reconnectInterval = 5 * 1000 // 5 seconds
 
 function createWebSocket(url) {
@@ -59,6 +60,7 @@ export class Connection extends Callback {
 
         this.ws = null
         this.keepalive = null
+        this.pingTimer = null
         this.reconnect = null
         this.status = 'disconnected'
         this.waiting = []
@@ -74,6 +76,10 @@ export class Connection extends Callback {
         if (this.keepalive) {
             clearInterval(this.keepalive)
             this.keepalive = null
+        }
+        if (this.pingTimer) {
+            clearTimeout(this.pingTimer)
+            this.pingTimer = null
         }
         if (this.reconnect) {
             clearInterval(this.reconnect)
@@ -152,6 +158,14 @@ export class Connection extends Callback {
             }
             const ping = { type: 'ping', content: { text: new Date().toString() } }
             this.ws.send(JSON.stringify(ping))
+            if (this.pingTimer) {
+                clearTimeout(this.pingTimer)
+            }
+            this.pingTimer = setTimeout(() => {
+                this.pingTimer = null
+                logger.warn('ping timeout, no response received')
+                this.onPingFailed('timeout')
+            }, pingTimeout)
         }, keepaliveInterval)
     }
 
@@ -168,6 +182,10 @@ export class Connection extends Callback {
     }
 
     _onMessage(event) {
+        if (this.pingTimer) {
+            clearTimeout(this.pingTimer)
+            this.pingTimer = null
+        }
         if (event.type === 'ping') {
             this.ws.send(JSON.stringify({ type: 'pong' }))
             return

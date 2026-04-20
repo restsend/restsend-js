@@ -16,6 +16,11 @@ export class Callback {
          * */
         this.onNetBroken = (reason) => { }
         /**
+         * Ping failed
+         * @param {String} reason Reason for ping failure
+         * */
+        this.onPingFailed = (reason) => { }
+        /**
          * Login failed
          * @param {String} reason Reason for failure
          * */
